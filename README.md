@@ -1,9 +1,9 @@
-<p align="center"><img width="250" alt="Morpion" src="images/logo.jpg"></a></p>
+<p align="center"><img width="400" alt="Morpion" src="images/icon.jpg"></a></p>
 
 <br/>
 
 
-<h2 style="font-family: sans-serif; font-weight: normal;" align="center"><strong>An API for ISEN</strong> (unofficial)</h2>
+<h2 style="font-family: sans-serif; font-weight: normal;" align="center"><strong>An API for ISEN-OUEST</strong> (unofficial)</h2>
 
 
 <br/>
@@ -14,6 +14,8 @@
 
 - requests
 - bs4
+- base64
+- json
 
 ## Usage
 
@@ -38,7 +40,14 @@ if not client.logged_in:
     exit()
 
 
-print(client.maClasse())
+print(client.classMember("CIR", "1", "Caen")) #Get all the students of the class CIR1 Caen
+print(client.classMember()) #Get all the students of the class you are in
+print(client.userInfo()) #Get your user info
+
+webAurion = client.webAuron() #Get the webAurion object
+grade = webAurion.grades() #Get your grades
+
+print(grade)
 
 
 ```

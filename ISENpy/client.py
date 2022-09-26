@@ -25,14 +25,17 @@ class ISEN:
         self.annee = annee
         self.ville = ville
 
-        self._checkClasExist(self.cycle, self.annee, self.ville)
+        self.__checkClassExist(self.cycle, self.annee, self.ville)
 
         self.session = requests.Session()
         self.session.headers = {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0"}
 
-        self.logged_in = self._login()
+        self.logged_in = self.__login()
 
-    def _checkClasExist(self, cycle:str, annee:str, ville:str) -> bool:
+    def __checkClassExist(self, cycle:str, annee:str, ville:str) -> bool:
+        """
+        Check if the class of user exist
+        """
 
 
         cycles = ["CIR", "CBIO", "CENT", "CEST", "CBIAST", "CSI"]
@@ -46,7 +49,10 @@ class ISEN:
         return True
 
 
-    def _login(self) -> bool:
+    def __login(self) -> bool:
+        """
+        Login to the session
+        """
 
 
         req = self.session.get("https://auth.isen-ouest.fr/cas/login?service=https://web.isen-ouest.fr/uPortal/Login")
@@ -69,6 +75,9 @@ class ISEN:
 
 
     def logout(self):
+        """
+        Logout from the session
+        """
 
         self.session.get("https://auth.isen-ouest.fr/cas/logout?url=https://web.isen-ouest.fr/uPortal/Login")
     
@@ -76,11 +85,22 @@ class ISEN:
 
 
     def webAuron(self):
+        """
+        Return the webAurion class, For check grades, absences, panning, etc...
+        """
 
         return dataClasses.WebAurion(self.session)
         
 
     def classMember(self, cycle:str = None, annee:str = None, ville:str = None):
+        """
+        Args:
+            cycle:str Optional
+            annee:str Optional
+            ville:str Optional
+        
+        Return the class member
+        """
 
         baseUrl = "https://web.isen-ouest.fr/trombino"
 
@@ -92,7 +112,7 @@ class ISEN:
             "statut":"etudiant"
         }
 
-        self._checkClasExist(payload["choix_groupe"].split(" ")[0][:-1], payload["choix_groupe"].split(" ")[0][-1:], payload["choix_groupe"].split(" ")[1])
+        self.__checkClassExist(payload["choix_groupe"].split(" ")[0][:-1], payload["choix_groupe"].split(" ")[0][-1:], payload["choix_groupe"].split(" ")[1])
 
         
 
@@ -116,6 +136,9 @@ class ISEN:
 
 
     def userInfo(self) -> dict:
+        """
+        Return your user info
+        """
         
         req = self.session.get("https://web.isen-ouest.fr/uPortal/api/v5-1/userinfo")
 

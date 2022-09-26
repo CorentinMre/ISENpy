@@ -14,8 +14,6 @@
 
 - requests
 - bs4
-- base64
-- json
 
 ## Usage
 

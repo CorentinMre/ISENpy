@@ -49,6 +49,9 @@ class WebAurion:
 
         
         def grades(self) -> dict:
+            """
+            Return a dict with all the grades of the user
+            """
 
             gradeUrl = "https://web.isen-ouest.fr/webAurion/faces/LearnerNotationListPage.xhtml"
 
@@ -79,8 +82,43 @@ class WebAurion:
             
 
             return gradeInfo
-        
+
+
+        def absences(self) -> dict:
+            """
+            Return a dict with all the absences of the user
+            """
+
+            absencesUrl = "https://web.isen-ouest.fr/webAurion/faces/MesAbsences.xhtml"
+            payload = {"form:j_idt810" : "form:j_idt810"}
+            pageAbsences = self.__webAurion(absencesUrl, payload)
+
+            soup = BeautifulSoup(pageAbsences.text, "html.parser")
+
+            result = soup.find_all("tr")[6:]
+            
+            if len(result) == 1 and result[0].find_all("td")[0].text == "Aucune absence.":
+                return {"nbAbsences":"0", "data":[]}
+
+            absencesInfo = {"nbAbsences":"", "data":[]}
+            for tr in result:
+                absencesInfo["data"].append({
+                    "date" : tr.find_all("td")[0].text,
+                    "motif" : tr.find_all("td")[1].text,
+                    "duree" : tr.find_all("td")[2].text,
+                    "horaire" : tr.find_all("td")[3].text,
+                    "cours" : tr.find_all("td")[4].text,
+                    "intervenant" : tr.find_all("td")[5].text,
+                    "matiere" : tr.find_all("td")[6].text
+                })
+            absencesInfo["nbAbsences"] = len(absencesInfo["data"])
+
+            return result
+
         def planning(self) -> dict:
+            """
+            Return a dict with the planning of the user !!! NOT WORKING !!! (for the moment)
+            """
 
             planningUrl = "https://web.isen-ouest.fr/webAurion/faces/Planning.xhtml"
 
@@ -92,6 +130,3 @@ class WebAurion:
 
 
             return self.session.post(planningUrl, data=payload).text, payload
-
-
-        

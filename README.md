@@ -19,6 +19,11 @@
 
 ## Usage
 
+Clone the repo, and ...
+
+- `cd ISENpy/`
+- `pip install -r requirements.txt`
+
 Here is an example script:
 
 ```python

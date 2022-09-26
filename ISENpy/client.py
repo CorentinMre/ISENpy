@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import base64, json
 
 #IMPORT 
-import dataClasses
+from . import dataClasses
 
 
 class ISEN:

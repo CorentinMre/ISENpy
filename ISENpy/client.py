@@ -84,7 +84,7 @@ class ISEN:
 
 
 
-    def webAuron(self):
+    def webAurion(self):
         """
         Return the webAurion class, For check grades, absences, panning, etc...
         """
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     #print(client.classMember()) #Get all the students of the class you are in
     #print(client.userInfo()) #Get your user info
 
-    webAurion = client.webAuron() #Get the webAurion object
+    webAurion = client.webAurion() #Get the webAurion object
     absence = webAurion.absences() #Get your absences
     grade = webAurion.grades() #Get your grades
 

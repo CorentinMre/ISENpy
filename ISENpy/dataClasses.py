@@ -1,3 +1,4 @@
+from http import cookies
 import requests
 from bs4 import BeautifulSoup
 import datetime
@@ -20,10 +21,8 @@ class WebAurion:
             
             mainPageUrl = "https://web.isen-ouest.fr/webAurion/faces/MainMenuPage.xhtml"
 
-             
-            payload = self.payload
-            payload.update(data)
-            self.session.post(mainPageUrl, data=payload)
+            data.update(self.payload)
+            self.session.post(mainPageUrl, data=data)
 
             return self.session.get(url)
 

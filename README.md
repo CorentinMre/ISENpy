@@ -20,7 +20,7 @@
 Clone the repo, and ...
 
 - `cd ISENpy/`
-- `pip install -r requirements.txt`
+- `pip3 install -r requirements.txt`
 
 Here is an example script:
 
@@ -50,7 +50,7 @@ print(client.userInfo()) #Get your user info
 webAurion = client.webAurion() #Get the webAurion object
 absence = webAurion.absences() #Get your absences
 grade = webAurion.grades() #Get your grades
-planning = webAurion.planning() #Get your planning of the week. Argument(Optional) is the beginning of the week in the format "dd/mm/yyyy" Ex. "03/10/2022"
+planning = webAurion.planning() #Get your planning of the week. Argument(Optional) is the beginning of the week (The Monday day) in the format "dd/mm/yyyy" Ex. "03/10/2022"
 
 print(absence)
 print(grade)
@@ -59,6 +59,55 @@ print(planning)
 client.logout()
 
 ```
+
+## Other example if you  want to get your planning in the calendar of your computer
+
+- This script uses the 'ics' and 'datetime' modules
+- `pip3 install ics datetime`
+
+```python
+import ISENpy
+from ics import Calendar, Event
+from datetime import datetime
+
+
+client = ISENpy.ISEN(
+                        username="<username>", 
+                        password="<password>",
+
+                        cycle="<cycle>", #Ex. "CIR" 
+                        annee="<annee>", #Ex. "1" 
+                        ville="<ville>"  #Ex. "Caen"
+                    )
+
+if not client.logged_in:
+    print("Identifiant ou mot de passe incorect !!")
+    exit()
+
+webAurion = client.webAurion() #Get the webAurion object
+
+planning = webAurion.planning() #Get your planning of the week. Argument(Optional) is the beginning of the week (The Monday day) in the format "dd/mm/yyyy" Ex. "03/10/2022"
+
+client.logout()
+
+c = Calendar()
+
+for i in planning["events"]:
+    e = Event()
+    
+    e.name = "\n".join(i["title"].split(" - ")[1:-3])
+    e.description = i["className"]
+    
+    e.begin = datetime.fromisoformat(i["start"][:-2] + ':00')
+    e.end = datetime.fromisoformat(i["end"][:-2] + ':00')
+    c.events.add(e)
+
+with open('week.ics', 'w') as my_file:
+    my_file.writelines(c.serialize_iter())
+
+```
+
+- ***And now double click on the new 'week.ics' file***
 
 
 ## LICENSE

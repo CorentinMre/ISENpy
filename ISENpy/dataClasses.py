@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
-
+import datetime
+import json
 
 class WebAurion:
     
@@ -11,7 +12,8 @@ class WebAurion:
             req = self.session.get(self.baseWebAurionUrl)
             
             self.payload = self.__getPayloadOfThePage(req.text, {})[0]
-            self.payload["form:j_idt755_input"] = "275805" # Langue Francaise
+            self.language = {"form:j_idt755_input" : "275805"} # Langue Francaise
+            self.payload.update(self.language)
 
         def __webAurion(self, url:str, data:dict) -> requests.Response:
 
@@ -21,7 +23,6 @@ class WebAurion:
              
             payload = self.payload
             payload.update(data)
-
             self.session.post(mainPageUrl, data=payload)
 
             return self.session.get(url)
@@ -115,18 +116,41 @@ class WebAurion:
 
             return result
 
-        def planning(self) -> dict:
+        def planning(self, beginningOfTheWeek:str = None) -> dict:
             """
-            Return a dict with the planning of the user !!! NOT WORKING !!! (for the moment)
+            Args:
+                beginningOfTheWeek (str): (Optional) The beginning of the week in the format "dd/mm/yyyy" Ex. "03/10/2022"
+                                                     If not specified, the beginning of the week will be the current week
+            
+            Return a dict with the planning of the user for the week
             """
-
+            
             planningUrl = "https://web.isen-ouest.fr/webAurion/faces/Planning.xhtml"
-
-            payload = {"form:j_idt823"	: "form:j_idt823"}
-            pagePlanning = self.__webAurion(planningUrl, payload)
-
+            pagePlanning = self.__webAurion(planningUrl, {"form:j_idt823":"form:j_idt823"})
             payload = self.__getPayloadOfThePage(pagePlanning.text, {})[0]
-
-
-
-            return self.session.post(planningUrl, data=payload).text, payload
+            
+            timestamp = int(datetime.datetime.strptime(payload["form:date_input"] if not beginningOfTheWeek else beginningOfTheWeek, '%d/%m/%Y').strftime("%s"))
+            
+            idform = list(payload.keys())[list(payload.values()).index("agendaWeek")][:-5]
+            
+            data = {
+                "javax.faces.partial.ajax": "true",
+                "javax.faces.source": idform,
+                "javax.faces.partial.execute": idform,
+                "javax.faces.partial.render": idform,
+                idform: idform,
+                idform + "_start": timestamp * 1000,
+                idform + "_end": (timestamp+518400) * 1000,
+                "form:offsetFuseauNavigateur": "-7200000"
+            }
+            payload.update(data)
+            payload.update(self.language)
+            
+            req = self.session.post(planningUrl, data=payload)
+            soup = BeautifulSoup(req.text, "xml")
+            planning = soup.find("update", {"id": idform}).text
+            
+            try: planning = json.loads(planning)
+            except: raise Exception("Error while parsing the planning")
+            
+            return planning

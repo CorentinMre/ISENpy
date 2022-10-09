@@ -30,5 +30,3 @@ planning = webAurion.planning() #Get your planning of the week. Argument(Optiona
 print(absence)
 print(grade)
 print(planning)
-
-client.logout()

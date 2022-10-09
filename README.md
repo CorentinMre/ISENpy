@@ -56,7 +56,6 @@ print(absence)
 print(grade)
 print(planning)
 
-client.logout()
 
 ```
 
@@ -87,8 +86,6 @@ if not client.logged_in:
 webAurion = client.webAurion() #Get the webAurion object
 
 planning = webAurion.planning() #Get your planning of the week. Argument(Optional) is the beginning of the week (The Monday day) in the format "dd/mm/yyyy" Ex. "03/10/2022"
-
-client.logout()
 
 c = Calendar()
 

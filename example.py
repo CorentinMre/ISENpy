@@ -25,7 +25,7 @@ print(client.userInfo()) #Get your user info
 webAurion = client.webAurion() #Get the webAurion object
 absence = webAurion.absences() #Get your absences
 grade = webAurion.grades() #Get your grades
-planning = webAurion.planning() #Get your planning of the week. Argument(Optional) is the beginning of the week in the format "dd/mm/yyyy" Ex. "03/10/2022"
+planning = webAurion.planning() #Get your planning of the week. Argument(Optional) is the beginning of the week (The Monday day) in the format "dd/mm/yyyy" Ex. "03/10/2022"
 
 print(absence)
 print(grade)

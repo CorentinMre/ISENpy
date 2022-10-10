@@ -89,12 +89,10 @@ planning = webAurion.planning() #Get your planning of the week. Argument(Optiona
 
 c = Calendar()
 
-for i in planning["events"]:
+for i in planning:
     e = Event()
-    
-    e.name = "\n".join(i["title"].split(" - ")[1:-3])
-    e.description = i["className"]
-    
+    e.name = i["matiere"] + " - " + i["type"]
+    e.description = i["description"] + " - intervenants: " + i["intervenants"] + " - classe: " + i["classe"]
     e.begin = datetime.fromisoformat(i["start"][:-2] + ':00')
     e.end = datetime.fromisoformat(i["end"][:-2] + ':00')
     c.events.add(e)

@@ -151,4 +151,24 @@ class WebAurion:
             try: planning = json.loads(planning)
             except: raise Exception("Error while parsing the planning")
             
-            return planning
+            workingTime = []
+
+            for i in planning["events"]:
+
+                info = i["title"].split(" - ")
+                workingTime.append({
+                    "id":i["id"],
+                    "start" : i["start"],
+                    "end" : i["end"],
+                    "className" : i["className"],
+                    "debut" : info[0].split(" à ")[0],
+                    "fin" : info[0].split(" à ")[1],
+                    "salle" : info[1],
+                    "type" : info[2],
+                    "matiere" : info[3] if i["className"] != "DS" else ", ".join(info[4:-3]),
+                    "description" : ", ".join(info[4:-2]) if i["className"] != "DS" else ", ".join(info[4:-3]),
+                    "intervenants" : info[-2],
+                    "classe" : info[-1]
+                })
+
+            return workingTime

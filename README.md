@@ -92,7 +92,8 @@ c = Calendar()
 for i in planning:
     e = Event()
     e.name = i["matiere"] + " - " + i["type"]
-    e.description = i["description"] + " - intervenants: " + i["intervenants"] + " - classe: " + i["classe"] + " - salle: " + i["salle"]
+    e.description = i["description"] + " - intervenants: " + i["intervenants"] + " - classe: " + i["classe"]
+    e.location = "salle: " + i["salle"]
     e.begin = datetime.fromisoformat(i["start"][:-2] + ':00')
     e.end = datetime.fromisoformat(i["end"][:-2] + ':00')
     c.events.add(e)

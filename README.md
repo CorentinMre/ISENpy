@@ -1,4 +1,4 @@
-<p align="center"><img width="400" alt="Morpion" src="images/icon.jpg"></a></p>
+<p align="center"><img width="400" alt="Logo" src="https://raw.githubusercontent.com/CorentinMre/ISENpy/main/images/icon.jpg"></a></p>
 
 <br/>
 
@@ -17,10 +17,8 @@
 
 ## Usage
 
-Clone the repo, and ...
 
-- `cd ISENpy/`
-- `pip3 install -r requirements.txt`
+- `pip install ISENpy`
 
 Here is an example script:
 

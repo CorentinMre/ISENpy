@@ -14,7 +14,23 @@ class WebAurion:
             self.payload = self.__getPayloadOfThePage(req.text, {})[0]
             self.language = {"form:j_idt755_input" : "275805"} # Langue Francaise
             self.payload.update(self.language)
-
+            soup = BeautifulSoup(req.text, "html.parser")
+            result = soup.find_all("div", {"class":"DispInline"})
+            self.payloadForAbsences = ""
+            self.payloadForGrades = ""
+            self.payloadForPlanning = ""
+            for i in result:
+                if i.find("a").text == "Dernière note":
+                    try : self.payloadForGrades = json.loads(i.find("a").get("onclick").split(",")[1].split(")")[0].replace("'", '"'))
+                    except : raise Exception("Error while getting the payload for grades")
+                if i.find("a").text == "Absences à justifier":
+                    try : self.payloadForAbsences = json.loads(i.find("a").get("onclick").split(",")[1].split(")")[0].replace("'", '"'))
+                    except : raise Exception("Error while getting the payload for absences")
+                if i.find("a").text == "Planning":
+                    try : self.payloadForPlanning = json.loads(i.find("a").get("onclick").split(",")[1].split(")")[0].replace("'", '"'))
+                    except : raise Exception("Error while getting the payload for calendar")
+            #if self.payloadForAbsences == "" or self.payloadForGrades == "" or self.payloadForPlanning == "":
+                #raise Exception("Error while getting the payload for absences, grades or calendar")
         def __webAurion(self, url:str, data:dict) -> requests.Response:
 
             
@@ -54,7 +70,7 @@ class WebAurion:
 
             gradeUrl = "https://web.isen-ouest.fr/webAurion/faces/LearnerNotationListPage.xhtml"
 
-            payload = {"form:j_idt780:j_idt782:j_idt786" : "form:j_idt780:j_idt782:j_idt786"}
+            payload = self.payloadForGrades
             pageGrade = self.__webAurion(gradeUrl, payload)
 
             soup = BeautifulSoup(pageGrade.text, "html.parser")
@@ -89,7 +105,7 @@ class WebAurion:
             """
 
             absencesUrl = "https://web.isen-ouest.fr/webAurion/faces/MesAbsences.xhtml"
-            payload = {"form:j_idt810" : "form:j_idt810"}
+            payload = self.payloadForAbsences
             pageAbsences = self.__webAurion(absencesUrl, payload)
 
             soup = BeautifulSoup(pageAbsences.text, "html.parser")
@@ -124,7 +140,7 @@ class WebAurion:
             """
             
             planningUrl = "https://web.isen-ouest.fr/webAurion/faces/Planning.xhtml"
-            pagePlanning = self.__webAurion(planningUrl, {"form:j_idt823":"form:j_idt823"})
+            pagePlanning = self.__webAurion(planningUrl, self.payloadForPlanning)
             payload = self.__getPayloadOfThePage(pagePlanning.text, {})[0]
             
             timestamp = int(datetime.datetime.strptime(payload["form:date_input"] if not beginningOfTheWeek else beginningOfTheWeek, '%d/%m/%Y').strftime("%s"))

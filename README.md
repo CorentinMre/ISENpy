@@ -14,6 +14,7 @@
 
 - requests
 - bs4
+- lxml
 
 ## Usage
 

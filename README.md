@@ -25,7 +25,7 @@ Here is an example script:
 ```python
 import ISENpy
 
-
+# Create a new instance of the ISENpy class
 client = ISENpy.ISEN(
                         username="<username>", 
                         password="<password>",
@@ -35,25 +35,32 @@ client = ISENpy.ISEN(
                         ville="<ville>"  #Ex. "Caen"
                     )
 
-
+#Check if the user is logged in
 if not client.logged_in:
     print("Identifiant ou mot de passe incorect !!")
     exit()
 
+#Example of use
+classMember = client.classMember("CIR", "1", "Caen") #Get all the students of the class CIR1 Caen
+print(classMember)
 
-print(client.classMember("CIR", "1", "Caen")) #Get all the students of the class CIR1 Caen
-print(client.classMember()) #Get all the students of the class you are in
-print(client.userInfo()) #Get your user info
+yourClass = client.classMember() #Get all the students of the class you are in
+print(yourClass) 
 
-webAurion = client.webAurion() #Get the webAurion object
+userInfo = client.userInfo() #Get your user info
+print(userInfo) 
+
+#Get the webAurion object
+webAurion = client.webAurion()
+
 absence = webAurion.absences() #Get your absences
-grade = webAurion.grades() #Get your grades
-planning = webAurion.planning() #Get your planning of the week. Argument(Optional) is the beginning of the week (The Monday day) in the format "dd/mm/yyyy" Ex. "03/10/2022"
-
 print(absence)
-print(grade)
-print(planning)
 
+grade = webAurion.grades() #Get your grades
+print(grade)
+
+planning = webAurion.planning() #Get your planning of the week. Argument(Optional) is the beginning of the week (The Monday day) in the format "dd/mm/yyyy" Ex. "03/10/2022"
+print(planning)
 
 ```
 

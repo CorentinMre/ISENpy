@@ -12,19 +12,27 @@ class ISEN:
     A ISEN-OUEST client.
     Parameters
     ----------
-    username : str
-        Your username
-    password : str
-        Your password
+        username : str
+            Your username
+        password : str
+            Your password
     Attributes
     ----------
-    logged_in : bool
-        If the user is successfully logged in
-    username : str
-    password : str
-    cycle : str
-    annee : str
-    ville : str
+        logged_in : bool
+            If the user is successfully logged in
+        username : str
+        password : str
+    Functions
+    ----------
+        classMember(cycle:str, annee:str, ville:str) -> dict
+        webAurion() -> dataClasses.WebAurion
+            grades() -> dict of grades of the user
+            absences() -> list of dict of absences of the user
+            planning() -> list ofdict of planning of the user
+                start_date:str Optional -> The start of the planning (format : "dd-mm-yyyy")
+                end_end:str Optional -> The end of the planning  (format : "dd-mm-yyyy")
+        userInfo() -> dict
+        logout() Optional -> Logout from the session
     """
 
 

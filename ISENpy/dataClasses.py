@@ -20,8 +20,8 @@ class WebAurion:
         grades() -> dict of grades of the user
         absences() -> list of dict of absences of the user
         planning() -> list ofdict of planning of the user
-            beginningOfTheWeek : datetime.datetime
-                The beginning of the week (the Monday day of the week)
+            start_date:str Optional -> The start of the planning (format : "dd-mm-yyyy")
+            end_end:str Optional -> The end of the planning  (format : "dd-mm-yyyy")
         """
     
         def __init__(self, session):

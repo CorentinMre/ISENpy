@@ -16,12 +16,6 @@ class ISEN:
         Your username
     password : str
         Your password
-    cycle : str
-        Your cycle (CIR, CBIO, CENT, CEST, CBIAST, CSI)
-    annee : str
-        Your year (1, 2, 3)
-    ville : str
-        Your city (Caen, Brest, Nantes, Rennes)
     Attributes
     ----------
     logged_in : bool
@@ -34,16 +28,10 @@ class ISEN:
     """
 
 
-    def __init__(self, username:str, password:str, cycle:str, annee:str, ville:str) -> None:
+    def __init__(self, username:str, password:str) -> None:
         #Set the user info
         self.username = username
         self.password = password
-        self.cycle = cycle
-        self.annee = annee
-        self.ville = ville
-        
-        #check if the class exist
-        self.__checkClassExist(self.cycle, self.annee, self.ville)
 
         #Create the session
         self.session = requests.Session()
@@ -114,12 +102,12 @@ class ISEN:
         return dataClasses.WebAurion(self.session)
         
 
-    def classMember(self, cycle:str = None, annee:str = None, ville:str = None) -> dict:
+    def classMember(self, cycle:str, annee:str, ville:str) -> dict:
         """
         Args:
-            cycle:str Optional
-            annee:str Optional
-            ville:str Optional
+            cycle:str "CIR", "CBIO", "CENT", "CEST", "CBIAST", "CSI"
+            annee:str "1", "2", "3"
+            ville:str "Caen", "Brest", "Nantes", "Rennes"
         
         Return:
             The class member
@@ -131,7 +119,7 @@ class ISEN:
         #Set payload for the request
         payload = {
             "nombre_colonnes":5,
-            "choix_groupe": f"{self.cycle.upper() if not cycle else cycle.upper()}{self.annee if not annee else annee} {self.ville.capitalize() if not ville else ville.capitalize()} 2022-2023",
+            "choix_groupe": f"{cycle.upper()}{annee} {ville.capitalize()} 2022-2023",
             "statut":"etudiant"
         }
 

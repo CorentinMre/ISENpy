@@ -5,10 +5,6 @@ import ISENpy
 client = ISENpy.ISEN(
                         username="<username>", 
                         password="<password>",
-
-                        cycle="<cycle>", #Ex. "CIR" 
-                        annee="<annee>", #Ex. "1" 
-                        ville="<ville>"  #Ex. "Caen"
                     )
 
 #Check if the user is logged in
@@ -19,9 +15,6 @@ if not client.logged_in:
 #Example of use
 classMember = client.classMember("CIR", "1", "Caen") #Get all the students of the class CIR1 Caen
 print(classMember)
-
-yourClass = client.classMember() #Get all the students of the class you are in
-print(yourClass) 
 
 userInfo = client.userInfo() #Get your user info
 print(userInfo) 

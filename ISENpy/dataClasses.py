@@ -1,7 +1,9 @@
+from typing import Optional
 import requests
 from bs4 import BeautifulSoup
 import datetime
 import json
+from typing import Optional
 
 class WebAurion:
         """
@@ -174,13 +176,14 @@ class WebAurion:
             #Return the list of dict of the absences
             return result
 
-        def planning(self, beginningOfTheWeek:str = None) -> list:
+        def planning(self, start_date:Optional[str] = None, end_date:Optional[str] = None) -> list:
             """
             Args:
-                beginningOfTheWeek (str): (Optional) The beginning of the week in the format "dd/mm/yyyy" Ex. "03/10/2022"
-                                                     If not specified, the beginning of the week will be the current week
+                start (str, optional): The start date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
+                end (str, optional): The end date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
+                    If 'start' and 'end' are not initialized, the planning will be for the current week
             
-            Return a dict with the planning of the user for the week
+            Return a dict with the planning of the user for the time interval
             """
             
             #Url of the page of the planning
@@ -189,7 +192,12 @@ class WebAurion:
             pagePlanning = self.__webAurion(planningUrl, self.payloadForPlanning)
             payload = self.__getPayloadOfThePage(pagePlanning.text, {})[0]
             #Set timestamp of the beginning of the week
-            timestamp = int(datetime.datetime.strptime(payload["form:date_input"] if not beginningOfTheWeek else beginningOfTheWeek, '%d/%m/%Y').strftime("%s"))
+            timestamp = int(datetime.datetime.strptime(payload["form:date_input"], '%d/%m/%Y').strftime("%s"))
+            #Set the first day for the planning
+            start_date = (timestamp*1000) if not start_date else (int(datetime.datetime.strptime(start_date, '%d-%m-%Y').strftime("%s"))*1000)
+            #Set the last day for the planning
+            end_date = ((timestamp+518400)*1000) if not end_date else (int(datetime.datetime.strptime(end_date, '%d-%m-%Y').strftime("%s"))*1000)
+            
             #Set the "form:??"
             idform = list(payload.keys())[list(payload.values()).index("agendaWeek")][:-5]
             #Set the payload
@@ -199,8 +207,8 @@ class WebAurion:
                 "javax.faces.partial.execute": idform,
                 "javax.faces.partial.render": idform,
                 idform: idform,
-                idform + "_start": timestamp * 1000,
-                idform + "_end": (timestamp+518400) * 1000,
+                idform + "_start": start_date,
+                idform + "_end": end_date,
                 "form:offsetFuseauNavigateur": "-7200000"
             }
             payload.update(data)

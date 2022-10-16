@@ -60,7 +60,7 @@ print(absence)
 grade = webAurion.grades() #Get your grades
 print(grade)
 
-planning = webAurion.planning() #Get your planning of the week. Argument(Optional) is the beginning of the week (The Monday day) in the format "dd/mm/yyyy" Ex. "03/10/2022"
+planning = webAurion.planning() #Get your planning of the week. Argument(Optional) : 'start_date' (format : "dd-mm-yyyy") and 'end_date' (format : "dd-mm-yyyy")
 print(planning)
 
 ```
@@ -91,7 +91,7 @@ if not client.logged_in:
 
 webAurion = client.webAurion() #Get the webAurion object
 
-planning = webAurion.planning() #Get your planning of the week. Argument(Optional) is the beginning of the week (The Monday day) in the format "dd/mm/yyyy" Ex. "03/10/2022"
+planning = webAurion.planning() #Get your planning of the week. Argument(Optional) : 'start_date' (format : "dd-mm-yyyy") and 'end_date' (format : "dd-mm-yyyy")
 
 c = Calendar()
 

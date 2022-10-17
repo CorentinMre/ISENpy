@@ -1,3 +1,4 @@
+<br>
 <p align="center"><img width="400" alt="Logo" src="https://raw.githubusercontent.com/CorentinMre/ISENpy/main/images/icon.jpg"></a></p>
 
 <br/>
@@ -10,7 +11,8 @@
 
 <h2 style="font-family: sans-serif; font-weight: normal;" align="center"><strong>⚠️ In development !!</strong></h2>
 
-## Dépendance
+
+## Dependencies
 
 - requests
 - bs4
@@ -19,7 +21,7 @@
 ## Usage
 
 
-- `pip install ISENpy`
+- `pip3 install ISENpy`
 
 Here is an example script:
 

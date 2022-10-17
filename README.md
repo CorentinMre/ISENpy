@@ -11,6 +11,10 @@
 
 <h2 style="font-family: sans-serif; font-weight: normal;" align="center"><strong>⚠️ In development !!</strong></h2>
 
+[![pypi version](https://img.shields.io/pypi/v/ISENpy.svg)](https://pypi.org/project/ISENpy/)
+[![python version](https://img.shields.io/pypi/pyversions/ISENpy.svg)](https://pypi.org/project/ISENpy/)
+[![license](https://img.shields.io/pypi/l/ISENpy.svg)](https://pypi.org/project/ISENpy/)
+
 
 ## Dependencies
 

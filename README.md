@@ -1,3 +1,5 @@
+## Description
+<h6>A python API wrapper for ISEN-OUEST, with webAurion information like calendar, grades, absences...</h6>
 <br>
 <p align="center"><img width="400" alt="Logo" src="https://raw.githubusercontent.com/CorentinMre/ISENpy/main/images/icon.jpg"></a></p>
 

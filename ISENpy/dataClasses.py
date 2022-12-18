@@ -104,6 +104,17 @@ class WebAurion:
             #Return 2 payloads
             return firstpayload, payload2
 
+#        def myInformation(self) -> dict:
+#            """User information (WebAurion)
+#            Returns:
+#                dict: user information
+#            """
+#            
+#            url = "https://web.isen-ouest.fr/webAurion/faces/TeacherPage.xhtml"
+#            
+#            response = self.__webAurion(url,{"form:sidebar":"form:sidebar","form:sidebar_menuid":"0_0"})
+#
+#            return response.text
         
         def grades(self) -> dict:
             """
@@ -154,11 +165,13 @@ class WebAurion:
             pageAbsences = self.__webAurion(absencesUrl, payload)
             #Scrap the page for get information about the absences
             soup = BeautifulSoup(pageAbsences.text, "html.parser")
-            result = soup.find_all("tr")[6:]
+            checkAbs = soup.find_all("tr")[6:]
+            result = soup.find_all("tbody")[1].find_all("tr")
+            total = soup.find_all("tbody")[2].find_all("tr") # [1].find_all("td")[1].text
             
             #If the user not have any absence
-            if len(result) == 1 and result[0].find_all("td")[0].text == "Aucune absence.":
-                return {"nbAbsences":"0", "data":[]}
+            if len(result) == 1 and checkAbs[0].find_all("td")[0].text == "Aucune absence.":
+                return {"nbAbsences":"0", "time" : "0", "data":[]}
 
             absencesInfo = {"nbAbsences":"", "data":[]}
             for tr in result:
@@ -171,9 +184,10 @@ class WebAurion:
                     "intervenant" : tr.find_all("td")[5].text,
                     "matiere" : tr.find_all("td")[6].text
                 })
-            absencesInfo["nbAbsences"] = len(absencesInfo["data"])
+            absencesInfo["nbAbsences"] = total[0].find_all("td")[1].text
+            absencesInfo["time"] = total[1].find_all("td")[1].text
             #Return the list of dict of the absences
-            return result
+            return absencesInfo
 
         def planning(self, start_date:Optional[str] = None, end_date:Optional[str] = None) -> list:
             """

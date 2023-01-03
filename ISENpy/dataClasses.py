@@ -205,7 +205,7 @@ class WebAurion:
             pagePlanning = self.__webAurion(planningUrl, self.payloadForPlanning)
             payload = self.__getPayloadOfThePage(pagePlanning.text, {})[0]
             #Set timestamp of the beginning of the week
-            timestamp = int(datetime.datetime.strptime(payload["form:date_input"], '%d/%m/%Y').strftime("%s"))
+            timestamp = int(datetime.datetime.strptime(payload["form:date_input"], '%d/%m/%Y').timestamp())
             #Set the first day for the planning
             start_date = (timestamp*1000) if not start_date else (int(datetime.datetime.strptime(start_date, '%d-%m-%Y').strftime("%s"))*1000)
             #Set the last day for the planning

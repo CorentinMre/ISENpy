@@ -207,9 +207,9 @@ class WebAurion:
             #Set timestamp of the beginning of the week
             timestamp = int(datetime.datetime.strptime(payload["form:date_input"], '%d/%m/%Y').timestamp())
             #Set the first day for the planning
-            start_date = (timestamp*1000) if not start_date else (int(datetime.datetime.strptime(start_date, '%d-%m-%Y').strftime("%s"))*1000)
+            start_date = (timestamp*1000) if not start_date else (int(datetime.datetime.strptime(start_date, '%d-%m-%Y').timestamp())*1000)
             #Set the last day for the planning
-            end_date = ((timestamp+518400)*1000) if not end_date else (int(datetime.datetime.strptime(end_date, '%d-%m-%Y').strftime("%s"))*1000)
+            end_date = ((timestamp+518400)*1000) if not end_date else (int(datetime.datetime.strptime(end_date, '%d-%m-%Y').timestamp())*1000)
             
             #Set the "form:??"
             idform = list(payload.keys())[list(payload.values()).index("agendaWeek")][:-5]

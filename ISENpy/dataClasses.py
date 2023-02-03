@@ -145,9 +145,9 @@ class WebAurion:
             #Init if the user not have any grade
             noGrade = 0
             for grade in gradeInfo["data"]:
-                if grade["note"] != "": gradeAverage += float(grade["note"])
+                if grade["note"] != "" and grade["note"] != "-": gradeAverage += float(grade["note"])
                 else: noGrade += 1
-            gradeInfo["gradeAverage"] = gradeAverage / (len(gradeInfo["data"]) - noGrade)
+            gradeInfo["gradeAverage"] = round(gradeAverage / (len(gradeInfo["data"]) - noGrade) , 2 )
             
             #Return the dict of the grades
             return gradeInfo

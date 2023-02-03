@@ -4,12 +4,12 @@
 <br/>
 
 
-<h2 style="font-family: sans-serif; font-weight: normal;" align="center"><strong>An API for ISEN-OUEST</strong> (unofficial)</h2>
+<h2 style="font-family: sans-serif; font-weight: normal;" align="center"><strong>An API for ISEN-OUEST</strong></h2>
 
 
 <br/>
 
-<h2 style="font-family: sans-serif; font-weight: normal;" align="center"><strong>⚠️ In development !!</strong></h2>
+<h2 style="font-family: sans-serif; font-weight: normal;" align="center"><strong>⚠️ Unofficial !!</strong></h2>
 
 [![pypi version](https://img.shields.io/pypi/v/ISENpy.svg)](https://pypi.org/project/ISENpy/)
 [![python version](https://img.shields.io/pypi/pyversions/ISENpy.svg)](https://pypi.org/project/ISENpy/)

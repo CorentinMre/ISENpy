@@ -110,6 +110,32 @@ with open('week.ics', 'w') as my_file:
 - ***And now double click on the new 'week.ics' file***
 
 
+## Example for get Moodle Resources
+
+```python
+import ISENpy
+
+client = ISENpy.ISEN(
+                        username="<username>", 
+                        password="<password>",
+                    )
+if not client.logged_in:
+    print("Identifiant ou mot de passe incorect !!")
+    exit()
+
+moodle = client.moodle() #Get the moodle object
+
+links = moodle.getCoursesLink() #Get all links of your courses
+
+for link in links:
+    resources = moodle.getCourseResources(links[link]) #Get all the assignments
+    print(link + " :\n")
+    print(resources)
+    print("------------------------------------------------------------------")
+
+```
+
+
 ## LICENSE
 
 Copyright (c) 2022 CorentinMre

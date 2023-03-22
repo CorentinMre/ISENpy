@@ -108,6 +108,13 @@ class ISEN:
         """
         #Get the webAurion informations file:"dataClasses.py"
         return dataClasses.WebAurion(self.session)
+    
+    def moodle(self):
+        """
+        Return moodle informations
+        """
+        #Get the webAurion informations file:"dataClasses.py"
+        return dataClasses.Moodle(self.session)
         
 
     def classMember(self, cycle:str, annee:str, ville:str) -> dict:
@@ -170,7 +177,7 @@ class ISEN:
 if __name__ == "__main__":
 
 
-    client = ISEN("", "", "CIR", "1", "Caen")
+    client = ISEN("", "")
 
     if not client.logged_in:
         print("Identifiant ou mot de passe incorect !!")
@@ -181,13 +188,16 @@ if __name__ == "__main__":
     #print(client.classMember()) #Get all the students of the class you are in
     #print(client.userInfo()) #Get your user info
 
-    webAurion = client.webAurion() #Get the webAurion object
-    absence = webAurion.absences() #Get your absences
-    grade = webAurion.grades() #Get your grades
+    #webAurion = client.webAurion() #Get the webAurion object
+    #absence = webAurion.absences() #Get your absences
+    #grade = webAurion.grades() #Get your grades
 
-    print(absence)
-    print(grade)
+    #print(absence)
+    #print(grade)
 
+    moodle = client.moodle() #Get the moodle object
+    
+    moodle.getPageInformation() #Get all the assignments
 
 
     client.logout()

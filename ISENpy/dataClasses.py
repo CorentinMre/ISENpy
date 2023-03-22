@@ -260,3 +260,43 @@ class WebAurion:
 
             #Return the list of dict of the planning
             return workingTime
+        
+
+class Moodle:
+    
+    def __init__(self, session):
+        #Get the session of the user
+        self.session = session
+        
+        self.baseUrl = "https://web.isen-ouest.fr/moodle/my/index.php?mynumber=-2"
+    
+    def getCoursesLink(self):
+        
+        req = self.session.get(self.baseUrl)
+        
+        soup = BeautifulSoup(req.text, "html.parser")
+        
+        allCourses = soup.find_all("div", {"class": "course_title"})
+        courses = {}
+        for title in allCourses:
+            courses[title.find("h2").text] = title.find("a")["href"]
+        
+        return courses
+
+    def getCourseResources(self, courseLink):
+            
+            req = self.session.get(courseLink)
+            
+            soup = BeautifulSoup(req.text, "html.parser")
+            
+            topics = soup.find_all("li", {"class": "section main clearfix"})
+            resources = {}
+            for topic in topics:
+                res = topic.find("div", {"class": "content"}).find("ul", {"class": "section img-text"})
+                listOfResources = []
+                for ress in res.findAll("li", {"class": "activity resource modtype_resource"}):
+                    listOfResources.append(ress.find("a")["href"])
+                resources[topic["aria-label"]] = listOfResources
+                
+
+            return resources

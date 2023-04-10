@@ -29,14 +29,28 @@ class WebAurion:
             self.session = session
             #Base WebAurion url
             self.baseWebAurionUrl = "https://web.isen-ouest.fr/webAurion/?portail=false"
-            req = self.session.get(self.baseWebAurionUrl)
+            baseReq = self.session.get(self.baseWebAurionUrl)
             #Get the payload of the page
-            self.payload = self.__getPayloadOfThePage(req.text, {})[0]
+            self.payload = self.__getPayloadOfThePage(baseReq.text, {})[0]
             #Set the language to french
             self.language = {"form:j_idt755_input" : "275805"} # Langue Francaise
             self.payload.update(self.language)
             #Scrap the payload for the grades, absences and planning
-            soup = BeautifulSoup(req.text, "html.parser")
+            soup = BeautifulSoup(baseReq.text, "html.parser")
+            # Get the ids of the left menu
+            leftMenu = soup.find("div", {"class": "ui-slidemenu-content"})
+            self.id_leftMenu = {}
+            self.childLeftMenu = {}
+            self.menuChildChild = {}
+            self.menuChildChildChild = {}
+            self.lastMenu = {}
+            
+            #Url of the page of the planning
+            self.planningUrl = "https://web.isen-ouest.fr/webAurion/faces/Planning.xhtml"
+            
+            for i in leftMenu.find_all("li"):
+                self.id_leftMenu[i.find("span", {"class": "ui-menuitem-text"}).text] = i["class"][-2].split("_")[-1]
+            #Get the payload for the grades, absences and planning
             result = soup.find_all("div", {"class":"DispInline"})
             self.payloadForAbsences = ""
             self.payloadForGrades = ""
@@ -188,22 +202,27 @@ class WebAurion:
             absencesInfo["time"] = total[1].find_all("td")[1].text
             #Return the list of dict of the absences
             return absencesInfo
+        
+        
+        def __getWorkingTime(self, req:requests.get, start_date:str=None, end_date:str=None, isOtherPlanning:bool= False, classe:str = "") -> list:
+            """ Get the working time of the user
 
-        def planning(self, start_date:Optional[str] = None, end_date:Optional[str] = None) -> list:
-            """
             Args:
-                start (str, optional): The start date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
-                end (str, optional): The end date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
-                    If 'start' and 'end' are not initialized, the planning will be for the current week
-            
-            Return a dict with the planning of the user for the time interval
+                req (requests.get): request of the page
+                start_date (str, optional): the start date of the planning. Defaults to None.
+                end_date (str, optional): the end date of the planning. Defaults to None.
+                isOtherPlanning (bool, optional): if the planning is for another user. Defaults to False.
+                classe (str, optional): the classe of the planning. Defaults to "".
+
+            Raises:
+                Exception: if the planning is not found
+
+            Returns:
+                list: the list of dict of the planning
             """
             
-            #Url of the page of the planning
-            planningUrl = "https://web.isen-ouest.fr/webAurion/faces/Planning.xhtml"
-            #Request the page for get payload
-            pagePlanning = self.__webAurion(planningUrl, self.payloadForPlanning)
-            payload = self.__getPayloadOfThePage(pagePlanning.text, {})[0]
+            #Get the payload of the page
+            payload = self.__getPayloadOfThePage(req.text, {})[0]
             #Set timestamp of the beginning of the week
             timestamp = int(datetime.datetime.strptime(payload["form:date_input"], '%d/%m/%Y').timestamp())
             #Set the first day for the planning
@@ -222,13 +241,13 @@ class WebAurion:
                 idform: idform,
                 idform + "_start": start_date,
                 idform + "_end": end_date,
-                "form:offsetFuseauNavigateur": "-7200000"
+                "form:offsetFuseauNavigateur": "-7200000",
             }
             payload.update(data)
             payload.update(self.language)
             
             #Request the page for get the planning
-            req = self.session.post(planningUrl, data=payload)
+            req = self.session.post(self.planningUrl, data=payload)
             #Scrap the page for get information about the planning
             soup = BeautifulSoup(req.text, "xml")
             planning = soup.find("update", {"id": idform}).text
@@ -243,24 +262,202 @@ class WebAurion:
             for i in planning["events"]:
 
                 info = i["title"].split(" - ")
-                workingTime.append({
-                    "id":i["id"],
-                    "start" : i["start"],
-                    "end" : i["end"],
-                    "className" : i["className"],
-                    "debut" : info[0].split(" à ")[0],
-                    "fin" : info[0].split(" à ")[1],
-                    "salle" : info[1],
-                    "type" : info[2],
-                    "matiere" : info[3] if i["className"] != "DS" else ", ".join(info[4:-3]),
-                    "description" : ", ".join(info[4:-2]) if i["className"] != "DS" else ", ".join(info[4:-3]),
-                    "intervenants" : info[-2],
-                    "classe" : info[-1]
-                })
+                #check if is the planning of the user planning
+                if isOtherPlanning:
+                    workingTime.append({
+                        "id":i["id"],
+                        "start" : i["start"],
+                        "end" : i["end"],
+                        "className" : i["className"],
+                        "debut" : info[0],
+                        "fin" : info[1],
+                        "salle" : info[-1],
+                        "type" : info[2],
+                        "matiere" : info[3] if i["className"] != "DS" else ", ".join(info[4:-3]),
+                        "description" : ", ".join(info[4:-2]) if i["className"] != "DS" else ", ".join(info[4:-3]),
+                        "intervenants" : info[-2],
+                        "classe" : classe
+                    })
+                else:
+                    workingTime.append({
+                        "id":i["id"],
+                        "start" : i["start"],
+                        "end" : i["end"],
+                        "className" : i["className"],
+                        "debut" : info[0].split(" à ")[0],
+                        "fin" : info[0].split(" à ")[1],
+                        "salle" : info[1],
+                        "type" : info[2],
+                        "matiere" : info[3] if i["className"] != "DS" else ", ".join(info[4:-3]),
+                        "description" : ", ".join(info[4:-2]) if i["className"] != "DS" else ", ".join(info[4:-3]),
+                        "intervenants" : info[-2],
+                        "classe" : info[-1]
+                    })
 
             #Return the list of dict of the planning
             return workingTime
+
+        def planning(self, start_date:Optional[str] = None, end_date:Optional[str] = None) -> list:
+            """
+            Args:
+                start (str, optional): The start date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
+                end (str, optional): The end date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
+                    If 'start' and 'end' are not initialized, the planning will be for the current week
+            
+            Return a dict with the planning of the user for the time interval
+            """
+            
+            
+            #Request the page for get payload
+            pagePlanning = self.__webAurion(self.planningUrl, self.payloadForPlanning)
+            
+            return self.__getWorkingTime(req=pagePlanning, start_date=start_date, end_date=end_date)
+            
         
+        def __soupForPlanning(self, data:dict, id:str) -> BeautifulSoup:
+            """ Get the soup page for the planning
+            Args:
+                data (dict): payload for the request
+                id (str): id of the next page
+
+            Returns:
+                BeautifulSoup: soup page
+            """
+
+            
+            url = "https://web.isen-ouest.fr/webAurion/faces/MainMenuPage.xhtml"
+            data["webscolaapp.Sidebar.ID_SUBMENU"] = "submenu_"+id
+            
+            req = self.session.post(url, data=data)
+            
+            soup = BeautifulSoup(req.text, "xml")
+            
+            inf = soup.find("update", {"id": "form:sidebar"}).text
+            
+            return BeautifulSoup(inf, "html.parser")
+        
+        
+        def getOtherPlanning(self, 
+                             start_date:Optional[str] = None,
+                             end_date:Optional[str] = None,
+                             classPlanning:str = "Plannings CIR",
+                             classCity:str = "Plannings CIR Caen",
+                             classYear:str = "Plannings CIR 1",
+                             classGroup:str = "CBIO1 CIR1 Caen 2022-2023 Groupe 1") -> list:
+            """
+            Args:
+                start_date (str, optional): The start date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
+                end_date (str, optional): The end date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
+                    If 'start_date' and 'end_date' are not initialized, the planning will be for the current week
+                classPlanning (str, optional): The planning of the user. Defaults to "Plannings CIR".
+                classCity (str, optional): The city of the user. Defaults to "Plannings CIR Caen".
+                classYear (str, optional): The year of the user. Defaults to "Plannings CIR 1".
+                classGroup (str, optional): The group of the user. Defaults to "CBIO1 CIR1 Caen 2022-2023 Groupe 1".
+            
+            Return a dict with the planning of the user for the time interval
+            
+            """
+            
+            information = "Plannings des groupes"
+            classSection = classPlanning
+            classInCity = classCity
+            lastClassInfo = classYear
+            lastClassInfoV2 = classGroup
+            
+            id_information = self.id_leftMenu[information]
+            id_selection = "form:j_idt52"
+            
+            
+            data = {
+                "javax.faces.partial.ajax": "true",
+                "javax.faces.source": id_selection,
+                "javax.faces.partial.execute": id_selection,
+                "javax.faces.partial.render": "form:sidebar",
+                id_selection: id_selection,
+            }
+            
+            data.update(self.payload)
+            
+            soup = self.__soupForPlanning(data, id_information)
+            
+            
+            listOfClasses = soup.find("li", {"class": "enfants-entierement-charges"}).find_all("li")
+            for child in listOfClasses:
+                self.childLeftMenu[child.find("span", {"class": "ui-menuitem-text"}).text] = child["class"][-2].split("_")[-1]
+            
+            
+            ####################################
+            
+            id_classSection = self.childLeftMenu[classSection]
+            
+            soup = self.__soupForPlanning(data, id_classSection)
+            
+            listOfClasses = soup.find_all("li", {"class": "enfants-entierement-charges"})[-1].find_all("li")
+            for child in listOfClasses:
+                self.menuChildChild[child.find("span", {"class": "ui-menuitem-text"}).text] = child["class"][-2].split("_")[-1]
+            
+            
+            #######################################
+            id_classInCity = self.menuChildChild[classInCity]
+            
+            soup = self.__soupForPlanning(data, id_classInCity)
+            
+            listOfClasses = soup.find_all("li", {"class": "enfants-entierement-charges"})[-1].find_all("li")
+            
+            for child in listOfClasses:
+                dictionary = child.find("a")["onclick"].split("'form',")[1].split(").submit")[0].replace("'", '"')
+                try:
+                    dictionary = json.loads(dictionary)
+                except:
+                    dictionary = {}
+                self.menuChildChildChild[child.find("span", {"class": "ui-menuitem-text"}).text] = dictionary
+            
+            
+            #########################################
+            payloadOfLastClass = self.menuChildChildChild[lastClassInfo]
+            
+            payloadOfLastClass.update(self.payload)
+            
+            
+            
+            req = self.session.post("https://web.isen-ouest.fr/webAurion/faces/MainMenuPage.xhtml", data=payloadOfLastClass)
+            
+            #print(req.text)
+            
+            soup = BeautifulSoup(req.text, "html.parser")
+            
+            allLastClass = soup.find("tbody", {"class": "ui-datatable-data"}).find_all("tr")
+            
+            
+            
+            
+            for child in allLastClass:
+                self.lastMenu[child.find("span", {"class": "preformatted"}).text] = child["data-rk"]
+            
+            
+            choicePlanningUrl = "https://web.isen-ouest.fr/webAurion/faces/ChoixPlanning.xhtml"
+            planningUrl = "https://web.isen-ouest.fr/webAurion/faces/Planning.xhtml"
+            
+            
+            payload = self.__getPayloadOfThePage(req.text, {})[0]
+            
+            ################################################
+            
+            lastPayload = {
+                "form:j_idt181_reflowDD":"0_0",
+                "form:j_idt181:j_idt186:filter":"",
+                "form:j_idt181_checkbox":"on",
+                "form:j_idt181_selection" : self.lastMenu[lastClassInfoV2],
+                "form:j_idt238":"",
+                "form:j_idt248_input" : "275805"    
+            }
+            
+            
+            payload.update(lastPayload)
+
+            req = self.session.post(choicePlanningUrl, data=payload)
+
+            return self.__getWorkingTime(req, start_date, end_date, True ,lastClassInfoV2)
 
 class Moodle:
     
@@ -293,10 +490,43 @@ class Moodle:
             resources = {}
             for topic in topics:
                 res = topic.find("div", {"class": "content"}).find("ul", {"class": "section img-text"})
-                listOfResources = []
+                listOfResources = {}
                 for ress in res.findAll("li", {"class": "activity resource modtype_resource"}):
-                    listOfResources.append(ress.find("a")["href"])
-                resources[topic["aria-label"]] = listOfResources
+                    listOfResources[ress.find("span", {"class": "instancename"}).text] = ress.find("a")["href"]
                 
+                resources[topic["aria-label"]] = listOfResources
 
             return resources
+    
+    def downloadResources(self, link, path):
+        
+        path = path.replace(" ", "_").replace(":", "_").replace("-", "_").replace("?", "_").replace("!", "_").replace("(", "_").replace(")", "_").replace("'", "_").replace(",", "_").replace(".", "_")
+        baseUrl = "https://web.isen-ouest.fr/moodle/pluginfile.php/"
+        req = self.session.get(link)
+        soup = BeautifulSoup(req.text, "html.parser")
+        if ".pdf" in req.url:
+            with open(path + ".pdf", "wb") as f:
+                f.write(req.content)
+            return True
+        else: return False
+        # if not baseUrl in req.url:
+            
+        #     for a in soup.find_all("a", href=True):
+        #         if a["href"].startswith(baseUrl) and "mod_resource/content" in a["href"]:
+        #             link = a["href"]
+        #             break
+        #     if link == "":
+        #         for img in soup.find_all("img", src=True):
+        #             if img["src"].startswith(baseUrl) and "mod_resource/content" in img["src"]:
+        #                 link = img["src"]
+        #                 break
+        #     if link == "":
+        #         print(path + " not found")
+        #         return False
+
+        #     req = self.session.get(link)
+        # with open(path + "." +req.url.split(".")[-1], "wb") as f:# path + req.url.split("/")[-1]
+        #     f.write(req.content)
+        # return True
+        #req = self.session.get(link)
+       # print(req.url)

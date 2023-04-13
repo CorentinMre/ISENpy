@@ -509,7 +509,6 @@ class WebAurion:
             
             
             #verification of informations
-            
             if not classPlanning in allClassesPossible.keys():
                 raise Exception("The classPlanning is not in the list of the planning", list(allClassesPossible.keys()))
 
@@ -520,9 +519,7 @@ class WebAurion:
                     if not classYear in city[classCity]:
                         raise Exception("The classYear is not in the list of the planning", city[classCity])
             
-        
-            
-            
+
             classPlanning = "Plannings " + classPlanning
             classCity = classPlanning + " " + classCity
             classYear = classPlanning + " " + classYear
@@ -541,7 +538,6 @@ class WebAurion:
             if not classPlanning:
                 raise Exception("Enter value of",list(self.classPlanning.keys()))
                 
-            
 
             if not classCity:
                 raise Exception("Enter value of",list(self.classPlanning[classPlanning]["city"].keys()))
@@ -550,8 +546,6 @@ class WebAurion:
             
             
             ############################################
-            
-  
             
             if not classYear:
                 raise Exception("Enter value of",list(self.classPlanning[classPlanning]["city"][classCity]["year"].keys()))
@@ -566,13 +560,11 @@ class WebAurion:
             
             self.getClassGroup(classPlanning, classCity, classYear)
             
-            
             #####################################################
 
             if not classGroup in self.classGroup:
                 raise Exception("The classGroup is not in the list of the planning", list(self.classGroup.keys()))
             
-
             ################################################
             
             lastPayload = {

@@ -22,6 +22,23 @@ class WebAurion:
         planning() -> list ofdict of planning of the user
             start_date:str Optional -> The start of the planning (format : "dd-mm-yyyy")
             end_end:str Optional -> The end of the planning  (format : "dd-mm-yyyy")
+        otherPlanning() -> list of dict of planning of the user
+            start_date:str Optional -> The start of the planning (format : "dd-mm-yyyy")
+            end_end:str Optional -> The end of the planning  (format : "dd-mm-yyyy")
+            classPlanning:str Optional -> The class of the planning (Ex. : "CIR")
+            classCity:str Optional -> The city of the planning (Ex. : "Caen")
+            classYear:str Optional -> The year of the planning (Ex. : "1")
+            classGroup:str Optional -> The group of the planning (Ex. : "CBIO1 CIR1 Caen 2022-2023 Groupe 1")
+        getClassPlanning() -> list of dict of class in webAurion
+        getClassCity() -> list of dict of city in webAurion
+            classPlanning:str Optional -> The class of the planning (Ex. : "CIR")
+        getClassYear() -> list of dict of year in webAurion
+            classPlanning:str Optional -> The class of the planning (Ex. : "CIR")
+            classCity:str Optional -> The city of the planning (Ex. : "Caen")
+        getClassGroup() -> list of dict of group in webAurion
+            classPlanning:str Optional -> The class of the planning (Ex. : "CIR")
+            classCity:str Optional -> The city of the planning (Ex. : "Caen")
+            classYear:str Optional -> The year of the planning (Ex. : "1")
         """
     
         def __init__(self, session):
@@ -40,10 +57,10 @@ class WebAurion:
             # Get the ids of the left menu
             leftMenu = soup.find("div", {"class": "ui-slidemenu-content"})
             self.id_leftMenu = {}
-            self.childLeftMenu = {}
-            self.menuChildChild = {}
-            self.menuChildChildChild = {}
-            self.lastMenu = {}
+            self.classPlanning = {}
+            self.classCity = {}
+            self.classYear = {}
+            self.classGroup = {}
             
             #Url of the page of the planning
             self.planningUrl = "https://web.isen-ouest.fr/webAurion/faces/Planning.xhtml"
@@ -68,6 +85,19 @@ class WebAurion:
             #Check if the payload is not empty
             #if self.payloadForAbsences == "" or self.payloadForGrades == "" or self.payloadForPlanning == "":
                 #raise Exception("Error while getting the payload for absences, grades or calendar")
+                
+            #Get the payload for the OtherPlanning function
+            id_selection = "form:j_idt52"
+            self.dataOtherPlanning = {
+                "javax.faces.partial.ajax": "true",
+                "javax.faces.source": id_selection,
+                "javax.faces.partial.execute": id_selection,
+                "javax.faces.partial.render": "form:sidebar",
+                id_selection: id_selection,
+            }
+            self.dataOtherPlanning.update(self.payload)
+            
+            
         def __webAurion(self, url:str, data:dict) -> requests.Response:
             """Requests a page of WebAurion
 
@@ -336,73 +366,66 @@ class WebAurion:
             
             return BeautifulSoup(inf, "html.parser")
         
-        
-        def getOtherPlanning(self, 
-                             start_date:Optional[str] = None,
-                             end_date:Optional[str] = None,
-                             classPlanning:str = "Plannings CIR",
-                             classCity:str = "Plannings CIR Caen",
-                             classYear:str = "Plannings CIR 1",
-                             classGroup:str = "CBIO1 CIR1 Caen 2022-2023 Groupe 1") -> list:
-            """
-            Args:
-                start_date (str, optional): The start date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
-                end_date (str, optional): The end date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
-                    If 'start_date' and 'end_date' are not initialized, the planning will be for the current week
-                classPlanning (str, optional): The planning of the user. Defaults to "Plannings CIR".
-                classCity (str, optional): The city of the user. Defaults to "Plannings CIR Caen".
-                classYear (str, optional): The year of the user. Defaults to "Plannings CIR 1".
-                classGroup (str, optional): The group of the user. Defaults to "CBIO1 CIR1 Caen 2022-2023 Groupe 1".
+
+        def getClassPlanning(self):
             
-            Return a dict with the planning of the user for the time interval
-            
+            """ Get the planning of the class of webAurion
+
+            Returns:
+                list: list of the class
             """
+            
             
             information = "Plannings des groupes"
-            classSection = classPlanning
-            classInCity = classCity
-            lastClassInfo = classYear
-            lastClassInfoV2 = classGroup
-            
             id_information = self.id_leftMenu[information]
-            id_selection = "form:j_idt52"
-            
-            
-            data = {
-                "javax.faces.partial.ajax": "true",
-                "javax.faces.source": id_selection,
-                "javax.faces.partial.execute": id_selection,
-                "javax.faces.partial.render": "form:sidebar",
-                id_selection: id_selection,
-            }
-            
-            data.update(self.payload)
-            
-            soup = self.__soupForPlanning(data, id_information)
-            
+            soup = self.__soupForPlanning(self.dataOtherPlanning, id_information)
             
             listOfClasses = soup.find("li", {"class": "enfants-entierement-charges"}).find_all("li")
             for child in listOfClasses:
-                self.childLeftMenu[child.find("span", {"class": "ui-menuitem-text"}).text] = child["class"][-2].split("_")[-1]
+                self.classPlanning[child.find("span", {"class": "ui-menuitem-text"}).text] = child["class"][-2].split("_")[-1]
             
+            return list(self.classPlanning.keys())
+
+        def getClassCity(self, classPlanning:str = "CIR"):
+            """ Get the city of the class
+
+            Args:
+                classPlanning (str, optional): class of planning. Defaults to "CIR".
+
+            Returns:
+                list: list of the city
+            """
+            classPlanning = "Plannings " + classPlanning
+            id_classPlanning = self.classPlanning[classPlanning]
             
-            ####################################
+            soup = self.__soupForPlanning(self.dataOtherPlanning, id_classPlanning)
+
+            listOfClasses = soup.find("li", {"class": f"submenu_{id_classPlanning}"}).find_all("li")
             
-            id_classSection = self.childLeftMenu[classSection]
-            
-            soup = self.__soupForPlanning(data, id_classSection)
-            
-            listOfClasses = soup.find_all("li", {"class": "enfants-entierement-charges"})[-1].find_all("li")
             for child in listOfClasses:
-                self.menuChildChild[child.find("span", {"class": "ui-menuitem-text"}).text] = child["class"][-2].split("_")[-1]
+                self.classCity[child.find("span", {"class": "ui-menuitem-text"}).text] = child["class"][-2].split("_")[-1]
             
+            self.classPlanning[classPlanning] = {"city" : self.classCity}
             
-            #######################################
-            id_classInCity = self.menuChildChild[classInCity]
+            return list(self.classCity.keys())
+        
+        def getClassYear(self, classPlanning:str = "CIR", classCity:str = "Caen"):
+            """ Get the year of the class
+
+            Args:
+                classPlanning (str, optional): class of planning. Defaults to "CIR".
+                classCity (str, optional): city of planning. Defaults to "Caen".
+
+            Returns:
+                list: list of the year
+            """
+            classPlanning = "Plannings " + classPlanning
+            classCity = classPlanning + " " + classCity
+            id_classCity = self.classPlanning[classPlanning]["city"][classCity]
             
-            soup = self.__soupForPlanning(data, id_classInCity)
-            
-            listOfClasses = soup.find_all("li", {"class": "enfants-entierement-charges"})[-1].find_all("li")
+            soup = self.__soupForPlanning(self.dataOtherPlanning, id_classCity)
+
+            listOfClasses = soup.find("li", {"class": f"submenu_{id_classCity}"}).find_all("li")
             
             for child in listOfClasses:
                 dictionary = child.find("a")["onclick"].split("'form',")[1].split(").submit")[0].replace("'", '"')
@@ -410,54 +433,166 @@ class WebAurion:
                     dictionary = json.loads(dictionary)
                 except:
                     dictionary = {}
-                self.menuChildChildChild[child.find("span", {"class": "ui-menuitem-text"}).text] = dictionary
+                self.classYear[child.find("span", {"class": "ui-menuitem-text"}).text] = dictionary
+                
+                
+            self.classPlanning[classPlanning]["city"][classCity] = {"year" : self.classYear}
             
+            return list(self.classYear.keys())
+
+        def getClassGroup(self, classPlanning:str = "CIR", classCity:str = "Caen", classYear:str = "1"):
+            """ Get the group of the class
+
+            Args:
+                classPlanning (str, optional): class of planning. Defaults to "CIR".
+                classCity (str, optional): city of the planning. Defaults to "Caen".
+                classYear (str, optional): year of the planning. Defaults to "1".
+
+            Returns:
+                list: list of the group
+            """
             
-            #########################################
-            payloadOfLastClass = self.menuChildChildChild[lastClassInfo]
+            classPlanning = "Plannings " + classPlanning
+            classCity = classPlanning + " " + classCity
+            classYear = classPlanning + " " + classYear
+            
+            payloadOfLastClass = self.classYear[classYear]
             
             payloadOfLastClass.update(self.payload)
             
-            
-            
             req = self.session.post("https://web.isen-ouest.fr/webAurion/faces/MainMenuPage.xhtml", data=payloadOfLastClass)
-            
-            #print(req.text)
             
             soup = BeautifulSoup(req.text, "html.parser")
             
             allLastClass = soup.find("tbody", {"class": "ui-datatable-data"}).find_all("tr")
             
-            
-            
-            
             for child in allLastClass:
-                self.lastMenu[child.find("span", {"class": "preformatted"}).text] = child["data-rk"]
+                self.classGroup[child.find("span", {"class": "preformatted"}).text] = child["data-rk"]
+                
+            
+            self.classPlanning[classPlanning]["city"][classCity]["year"][classYear] = {"group" : self.classGroup}
+            self.classPlanning[classPlanning]["city"][classCity]["year"][classYear]["extraInfo"] = req
             
             
-            choicePlanningUrl = "https://web.isen-ouest.fr/webAurion/faces/ChoixPlanning.xhtml"
-            planningUrl = "https://web.isen-ouest.fr/webAurion/faces/Planning.xhtml"
+            
+            return list(self.classGroup.keys())
+
+        
+        def getOtherPlanning(self, 
+                             start_date:Optional[str] = None,
+                             end_date:Optional[str] = None,
+                             classPlanning:str = "CIR",
+                             classCity:str = "Caen",
+                             classYear:str = "1",
+                             classGroup:str = "CBIO1 CIR1 Caen 2022-2023 Groupe 1") -> list:
+            """
+            Args:
+                start_date (str, optional): The start date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
+                end_date (str, optional): The end date of the planning. Defaults to None. (Format : "dd-mm-yyyy")
+                    If 'start_date' and 'end_date' are not initialized, the planning will be for the current week
+                classPlanning (str, optional): The planning of the user. Defaults to "CIR".
+                classCity (str, optional): The city of the user. Defaults to "Caen".
+                classYear (str, optional): The year of the user. Defaults to "1".
+                classGroup (str, optional): The group of the user. Defaults to "CBIO1 CIR1 Caen 2022-2023 Groupe 1".
+            
+            Return a dict with the planning of the user for the time interval
+            
+            """
+            
+            allYearsPossible = ["1", "2", "3"]
+            allClassesPossible = {
+                "CBIO": [{"Brest" : allYearsPossible}, {"Caen" : allYearsPossible}], 
+                "CIR" : [{"Caen" : allYearsPossible}, {"Nantes" : allYearsPossible}, {"Rennes" : ["1", "2"]}, {"Brest" : allYearsPossible}],
+                "CSI" : [{"Caen" : allYearsPossible}, {"Nantes" : allYearsPossible}, {"Brest" : allYearsPossible}]
+            }
             
             
-            payload = self.__getPayloadOfThePage(req.text, {})[0]
             
+            #verification of informations
+            
+            if not classPlanning in allClassesPossible.keys():
+                raise Exception("The classPlanning is not in the list of the planning", list(allClassesPossible.keys()))
+
+
+
+            for city in allClassesPossible[classPlanning]:
+                if classCity in city.keys():
+                    if not classYear in city[classCity]:
+                        raise Exception("The classYear is not in the list of the planning", city[classCity])
+            
+        
+            
+            
+            classPlanning = "Plannings " + classPlanning
+            classCity = classPlanning + " " + classCity
+            classYear = classPlanning + " " + classYear
+            
+            
+            ##############################################
+
+            
+            self.getClassPlanning()
+            
+            #############################################
+            
+            if not classPlanning in self.classPlanning:
+                raise Exception("The classPlanning is not in the list of the planning")
+
+            if not classPlanning:
+                raise Exception("Enter value of",list(self.classPlanning.keys()))
+                
+            
+
+            if not classCity:
+                raise Exception("Enter value of",list(self.classPlanning[classPlanning]["city"].keys()))
+            
+            self.getClassCity(classPlanning)
+            
+            
+            ############################################
+            
+  
+            
+            if not classYear:
+                raise Exception("Enter value of",list(self.classPlanning[classPlanning]["city"][classCity]["year"].keys()))
+            
+            self.getClassYear(classPlanning, classCity)
+            
+            
+            #############################################
+
+            if not classGroup:
+                raise Exception("Enter value of", list(self.classPlanning[classPlanning]["city"][classCity]["year"][classYear]["group"].keys()))
+            
+            self.getClassGroup(classPlanning, classCity, classYear)
+            
+            
+            #####################################################
+
+            if not classGroup in self.classGroup:
+                raise Exception("The classGroup is not in the list of the planning", list(self.classGroup.keys()))
+            
+
             ################################################
             
             lastPayload = {
                 "form:j_idt181_reflowDD":"0_0",
                 "form:j_idt181:j_idt186:filter":"",
                 "form:j_idt181_checkbox":"on",
-                "form:j_idt181_selection" : self.lastMenu[lastClassInfoV2],
+                "form:j_idt181_selection" : self.classGroup[classGroup],
                 "form:j_idt238":"",
                 "form:j_idt248_input" : "275805"    
             }
             
+            payloadForChoicePlanning = {classYear : self.__getPayloadOfThePage(self.classPlanning[classPlanning]["city"][classCity]["year"][classYear]["extraInfo"].text, {})[0]}
             
-            payload.update(lastPayload)
+            payloadForChoicePlanning[classYear].update(lastPayload)
 
-            req = self.session.post(choicePlanningUrl, data=payload)
+            req = self.session.post("https://web.isen-ouest.fr/webAurion/faces/ChoixPlanning.xhtml", data=payloadForChoicePlanning[classYear])
 
-            return self.__getWorkingTime(req, start_date, end_date, True ,lastClassInfoV2)
+            return self.__getWorkingTime(req, start_date, end_date, True ,classGroup)
+        
+
 
 class Moodle:
     

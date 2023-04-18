@@ -47,6 +47,8 @@ class WebAurion:
             #Base WebAurion url
             self.baseWebAurionUrl = "https://web.isen-ouest.fr/webAurion/?portail=false"
             baseReq = self.session.get(self.baseWebAurionUrl)
+            if baseReq.status_code != 200:
+                raise Exception(f"WebAuiron is not available for the moment: Error {baseReq.status_code}")
             #Get the payload of the page
             self.payload = self.__getPayloadOfThePage(baseReq.text, {})[0]
             #Set the language to french
@@ -64,9 +66,9 @@ class WebAurion:
             
             #Url of the page of the planning
             self.planningUrl = "https://web.isen-ouest.fr/webAurion/faces/Planning.xhtml"
-            
             for i in leftMenu.find_all("li"):
                 self.id_leftMenu[i.find("span", {"class": "ui-menuitem-text"}).text] = i["class"][-2].split("_")[-1]
+
             #Get the payload for the grades, absences and planning
             result = soup.find_all("div", {"class":"DispInline"})
             self.payloadForAbsences = ""

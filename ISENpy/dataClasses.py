@@ -660,8 +660,11 @@ class WebAurion:
             result = {"nbReport": len(report), "data":{}}
             
             for i in report:
-                result["data"][i.text] = i["value"]
-                
+                nameFile = i.text.split(".pdf")[0] # because we have space after the name of the file
+                nameFile += ".pdf"
+                result["data"][nameFile] = i["value"]
+            
+            
             self.infoReport = result
         
             return result

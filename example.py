@@ -30,3 +30,9 @@ print(grade)
 
 planning = webAurion.planning() #Get your planning of the week. Argument(Optional) : 'start_date' (format : "dd-mm-yyyy") and 'end_date' (format : "dd-mm-yyyy")
 print(planning)
+
+schoolReport = webAurion.getSchoolReport() #Get your school report
+print(schoolReport)
+
+# for download the report
+#webAurion.downloadReport() #Download the school report. Argument(Optional) : 'path' (format : "path/to/file.pdf") and 'idReport' (format : "id")

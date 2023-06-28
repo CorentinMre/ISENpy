@@ -39,6 +39,12 @@ class WebAurion:
             classPlanning:str Optional -> The class of the planning (Ex. : "CIR")
             classCity:str Optional -> The city of the planning (Ex. : "Caen")
             classYear:str Optional -> The year of the planning (Ex. : "1")
+            
+        getSchoolReport() -> dict of report of the user
+        downloadReport() -> download the report of the user
+            path:str Optional -> The path of the report (Default : the name of the file in WebAurion)
+            idReport:str Optional -> The id of the report (Default : all the report of the user)
+        
         """
     
         def __init__(self, session):
@@ -46,6 +52,7 @@ class WebAurion:
             self.session = session
             #Base WebAurion url
             self.baseWebAurionUrl = "https://web.isen-ouest.fr/webAurion/?portail=false"
+            self.baseMainPageUrl = "https://web.isen-ouest.fr/webAurion/faces/MainMenuPage.xhtml"
             baseReq = self.session.get(self.baseWebAurionUrl)
             if baseReq.status_code != 200:
                 raise Exception(f"WebAuiron is not available for the moment: Error {baseReq.status_code}")
@@ -99,6 +106,9 @@ class WebAurion:
             }
             self.dataOtherPlanning.update(self.payload)
             
+            self.payloadReport = {}
+            self.infoReport = {}
+            
             
         def __webAurion(self, url:str, data:dict) -> requests.Response:
             """Requests a page of WebAurion
@@ -112,7 +122,7 @@ class WebAurion:
             """
 
             #Url of the main page of webAurion
-            mainPageUrl = "https://web.isen-ouest.fr/webAurion/faces/MainMenuPage.xhtml"
+            mainPageUrl = self.baseMainPageUrl
             #Set the payload
             data.update(self.payload)
             self.session.post(mainPageUrl, data=data)
@@ -357,7 +367,7 @@ class WebAurion:
             """
 
             
-            url = "https://web.isen-ouest.fr/webAurion/faces/MainMenuPage.xhtml"
+            url = self.baseMainPageUrl
             data["webscolaapp.Sidebar.ID_SUBMENU"] = "submenu_"+id
             
             req = self.session.post(url, data=data)
@@ -462,7 +472,7 @@ class WebAurion:
             
             payloadOfLastClass.update(self.payload)
             
-            req = self.session.post("https://web.isen-ouest.fr/webAurion/faces/MainMenuPage.xhtml", data=payloadOfLastClass)
+            req = self.session.post(self.baseMainPageUrl, data=payloadOfLastClass)
             
             soup = BeautifulSoup(req.text, "html.parser")
             
@@ -587,6 +597,122 @@ class WebAurion:
             return self.__getWorkingTime(req, start_date, end_date, True ,classGroup)
         
 
+        
+        
+        def getSchoolReport(self) -> dict:
+            """ Get the report of the user
+
+            Returns:
+                dict: dict of the report
+                    format : {"nbReport": int, "data": {"name": "id"}}
+            
+            Raises:
+                Exception: if the user not have any report
+            """
+            
+            urlPost = self.baseMainPageUrl
+            
+            information = "Scolarité"
+            id_information = self.id_leftMenu[information]
+            soup = self.__soupForPlanning(self.dataOtherPlanning, id_information)
+            
+            id_info = {}
+            listOfInformation = soup.find("li", {"class": "enfants-entierement-charges"}).find_all("li")
+            for child in listOfInformation:
+                id_info[child.find("span", {"class": "ui-menuitem-text"}).text] = child["class"][-2].split("_")[-1]
+                
+            information2 = "Mes documents"
+            id_information2 = id_info[information2]
+            
+            soup = self.__soupForPlanning(self.dataOtherPlanning, id_information2)
+            id_info2 = {}
+            listOfInformation2 = soup.find("li", {"class": "enfants-entierement-charges"}).find_all("li")
+            for child in listOfInformation2:
+                id_info2[child.find("span", {"class": "ui-menuitem-text"}).text] = child.find("a", {"class": "ui-menuitem-link"})["class"][-2].split("_")[-1]
+            
+
+            payload = {
+                'form:sidebar':'form:sidebar','form:sidebar_menuid':'1_0_1',
+                "form:j_idt780:j_idt782_dropdown":"1", "form:j_idt780:j_idt782_mobiledropdown":"1"
+            }
+            
+            req = self.session.post(urlPost, data=payload)
+            
+            if req.status_code != 200:
+                raise Exception(f"WebAuiron is not available for the moment: Error {req.status_code}, 1")
+            
+            payload2 = self.__getPayloadOfThePage(req.text, {})[0]
+            
+            payload2.update(payload)
+            payload2.update(self.language)
+            
+            req = self.session.post(urlPost, data=payload2)
+            
+            if req.status_code != 200:
+                raise Exception(f"WebAuiron is not available for the moment: Error {req.status_code}, 2")
+            
+            self.payloadReport = self.__getPayloadOfThePage(req.text, {})[0]
+            
+            soup = BeautifulSoup(req.text, "html.parser")
+            
+            report = soup.find("div", {"class": "ui-datatable-tablewrapper"}).find("select").find_all("option")
+            
+            result = {"nbReport": len(report), "data":{}}
+            
+            for i in report:
+                result["data"][i.text] = i["value"]
+                
+            self.infoReport = result
+        
+            return result
+        
+        def downloadReport(self, path:str = None, idReport:str = None) -> None:
+            """ Download the report of the user
+
+            Args:
+                path (str, optional): path of the report. Defaults to the name in WebAurion.
+                idReport (str, optional): id of the report. Defaults all the report of the user
+
+            Raises:
+                Exception: if the user not have any report
+                Exception: if the report is not found
+            """
+            
+            if self.payloadReport == {}:
+                self.infoReport = self.getSchoolReport()
+                
+
+            if self.infoReport["nbReport"] == 0:
+                raise Exception("The user not have any report")
+            
+            if self.infoReport["nbReport"] > 1 and path != None:
+                raise Exception("The user have more than one report, please choose no one path or no path")
+            
+            if idReport == None:
+                for i in self.infoReport["data"].keys():
+                    if path == None:
+                        path = i
+                    self.downloadReport(path, self.infoReport["data"][i])
+                    return
+                    
+
+            urlChoixDonnee = "https://web.isen-ouest.fr/webAurion/faces/ChoixDonnee.xhtml"
+            
+            payload = {
+                'form:j_idt193:0:j_idt209':'form:j_idt193:0:j_idt209',
+                "form:j_idt193:0:documents_input":idReport,
+            }
+            
+            payload.update(self.payloadReport)
+            
+            req = self.session.post(urlChoixDonnee, data=payload)
+            
+            if req.status_code != 200:
+                raise Exception(f"WebAuiron is not available for the moment: Error {req.status_code}")
+            
+            with open(path, "wb") as f:
+                f.write(req.content)
+            
 
 class Moodle:
     

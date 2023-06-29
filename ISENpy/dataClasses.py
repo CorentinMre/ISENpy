@@ -571,11 +571,11 @@ class WebAurion:
 
         report = soup.find("div", {"class": "ui-datatable-tablewrapper"}).find("select").find_all("option")
 
-        result = {"nbReport": len(report), "data": {}}
+        result = {"nbReport": len(report), "data": []}
 
         for i in report:
             nameFile = i.text.split(".pdf")[0].strip() + ".pdf"
-            result["data"][nameFile] = i["value"]
+            result["data"].append({"name": nameFile, "id": i["value"]})
 
         self.infoReport = result
 
@@ -604,13 +604,19 @@ class WebAurion:
             raise Exception("The user has more than one report. Please choose either no path or no specific path.")
 
         if path is None and idReport is not None:
-            path = list(self.infoReport["data"].keys())[0]
+            # self.infoReport format : {"nbReport": int, "data":  ({"name": "name", "id":"id"}, ...)}]}
+            for i in self.infoReport["data"]:
+                if i["id"] == idReport:
+                    path = i["name"]
+                    break
+            if path is None:
+                raise Exception("The report is not found")
 
         if idReport is None:
-            for i in self.infoReport["data"].keys():
+            for i in self.infoReport["data"]:
                 if path is None:
-                    path = i
-                self.downloadReport(path, self.infoReport["data"][i])
+                    path = i["name"]
+                self.downloadReport(path=i["name"], idReport=i["id"])
                 return
 
         urlChoixDonnee = "https://web.isen-ouest.fr/webAurion/faces/ChoixDonnee.xhtml"

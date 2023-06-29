@@ -690,6 +690,9 @@ class WebAurion:
             
             if self.infoReport["nbReport"] > 1 and path != None:
                 raise Exception("The user have more than one report, please choose no one path or no path")
+
+            if path == None and idReport != None:
+                path = list(self.infoReport["data"].keys())[0]
             
             if idReport == None:
                 for i in self.infoReport["data"].keys():

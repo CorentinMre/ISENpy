@@ -283,9 +283,6 @@ class WebAurion:
                 "start": i["start"],
                 "end": i["end"],
                 "className": i["className"],
-                "debut": info[0],
-                "fin": info[1],
-                "salle": info[-1],
                 "type": info[2],
                 "matiere": info[3] if i["className"] != "DS" else ", ".join(info[4:-3]),
                 "description": ", ".join(info[4:-2]) if i["className"] != "DS" else ", ".join(info[4:-3]),
@@ -293,9 +290,15 @@ class WebAurion:
             }
 
             if isOtherPlanning:
+                planning_data["debut"] = info[0]
+                planning_data["fin"] = info[1]
+                planning_data["salle"] = info[-1]
                 planning_data["classe"] = classe
             else:
-                planning_data["classe"] = classe if i["className"] == "DS" else info[-1]
+                planning_data["debut"] = info[0].split(" à ")[0]
+                planning_data["fin"] = info[0].split(" à ")[1]
+                planning_data["salle"] = info[1]
+                planning_data["classe"] = info[-1]
 
             workingTime.append(planning_data)
 
@@ -342,16 +345,16 @@ class WebAurion:
         Returns:
             list: List of classes.
         """
-        information = "Group Schedules"
+        information = "Plannings des groupes"
         id_information = self.id_leftMenu[information]
         soup = self.__soupForPlanning(self.dataOtherPlanning, id_information)
-        listOfClasses = soup.find("li", {"class": "fully-loaded-children"}).find_all("li")
+        listOfClasses = soup.find("li", {"class": "enfants-entierement-charges"}).find_all("li")
         for child in listOfClasses:
             self.classPlanning[child.find("span", {"class": "ui-menuitem-text"}).text] = child["class"][-2].split("_")[-1]
         return list(self.classPlanning.keys())
 
 
-    def getClassCity(self, classPlanning: str = "CIR"):
+    def getClassCity(self, classPlanning: str = "Plannings CIR"):
         """Get the city of the class.
 
         Args:
@@ -360,7 +363,7 @@ class WebAurion:
         Returns:
             list: List of cities.
         """
-        classPlanning = "Planning " + classPlanning
+        classPlanning = classPlanning
         id_classPlanning = self.classPlanning[classPlanning]
         soup = self.__soupForPlanning(self.dataOtherPlanning, id_classPlanning)
         listOfCities = soup.find("li", {"class": f"submenu_{id_classPlanning}"}).find_all("li")
@@ -370,7 +373,7 @@ class WebAurion:
         return list(self.classCity.keys())
 
 
-    def getClassYear(self, classPlanning: str = "CIR", classCity: str = "Caen"):
+    def getClassYear(self, classCity: str = "Plannings CIR Caen"):
         """Get the year of the class.
 
         Args:
@@ -380,8 +383,9 @@ class WebAurion:
         Returns:
             list: List of years.
         """
-        classPlanning = "Planning " + classPlanning
-        classCity = classPlanning + " " + classCity
+        
+        classPlanning = " ".join(classCity.split(" ")[:-1])
+
         id_classCity = self.classPlanning[classPlanning]["city"][classCity]
         soup = self.__soupForPlanning(self.dataOtherPlanning, id_classCity)
         listOfYears = soup.find("li", {"class": f"submenu_{id_classCity}"}).find_all("li")
@@ -396,7 +400,7 @@ class WebAurion:
         return list(self.classYear.keys())
 
 
-    def getClassGroup(self, classPlanning: str = "CIR", classCity: str = "Caen", classYear: str = "1"):
+    def getClassGroup(self, classYear: str = "Plannings CIR Caen 1"):
         """Get the group of the class.
 
         Args:
@@ -407,9 +411,11 @@ class WebAurion:
         Returns:
             list: List of groups.
         """
-        classPlanning = "Planning " + classPlanning
-        classCity = classPlanning + " " + classCity
-        classYear = classPlanning + " " + classYear
+
+        classPlanning = " ".join(classYear.split(" ")[:-2])
+        classCity = classPlanning + " " + classYear.split(" ")[-2]
+        classYear = classPlanning + " " + classYear.split(" ")[-1]
+        
         payloadOfLastClass = self.classYear[classYear]
         payloadOfLastClass.update(self.payload)
         req = self.session.post(self.baseMainPageUrl, data=payloadOfLastClass)
@@ -460,7 +466,9 @@ class WebAurion:
 
         classPlanning = "Plannings " + classPlanning
         classCity = classPlanning + " " + classCity
+        globalClass = classCity + " " + classYear
         classYear = classPlanning + " " + classYear
+        
 
         self.getClassPlanning()
 
@@ -478,12 +486,12 @@ class WebAurion:
         if not classYear:
             raise Exception("Enter value of", list(self.classPlanning[classPlanning]["city"][classCity]["year"].keys()))
 
-        self.getClassYear(classPlanning, classCity)
+        self.getClassYear(classCity)
 
         if not classGroup:
             raise Exception("Enter value of", list(self.classPlanning[classPlanning]["city"][classCity]["year"][classYear]["group"].keys()))
 
-        self.getClassGroup(classPlanning, classCity, classYear)
+        self.getClassGroup(globalClass)
 
         if classGroup not in self.classGroup:
             raise Exception("The classGroup is not in the list of the planning", list(self.classGroup.keys()))

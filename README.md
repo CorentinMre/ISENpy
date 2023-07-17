@@ -136,7 +136,7 @@ for event in planning.data:
 
 ```
 
-## Example for get your shool report
+## Example for get your school report
 
 ```python
 

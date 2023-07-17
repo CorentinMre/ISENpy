@@ -1,8 +1,17 @@
+# dataClasses.py
+
+"""
+This file defines classes to represent WebAurion, Moodle, and their respective data
+"""
+
 from typing import Optional
 import requests
 from bs4 import BeautifulSoup
 import json
 import datetime
+
+# IMPORT 
+from . import classification
 
 class WebAurion:
     """
@@ -20,18 +29,25 @@ class WebAurion:
 
     Functions
     ----------
-    grades() -> dict:
-        Return a dict with all the grades of the user
+    grades() -> classification.GradeReport:
+        Return a dict with all the grades of the user and the average of the grades
+            you can get value with a dict like this : grades["average"] or grades["data"][0]["date"]
+            or like this :  grades.average or grades.data[0].date
 
-    absences() -> list:
+    absences() -> classification.AbsenceReport:
         Return a list of dict of absences of the user
+            you can get value with a dict like this : absences["nbAbsences"] or absences["data"][0]["date"]
+            or like this :  absences.nbAbsences or absences.data[0].date
 
-    planning() -> list:
+    planning() -> classification.PlanningReport:
+        Parameters:
+            start_date : str, optional
+                The start of the planning (format: "dd-mm-yyyy")
+            end_date : str, optional
+                The end of the planning (format: "dd-mm-yyyy")
         Return a list of dict of planning of the user
-        start_date : str, optional
-            The start of the planning (format: "dd-mm-yyyy")
-        end_date : str, optional
-            The end of the planning (format: "dd-mm-yyyy")
+            you can get value with a dict like this : planning["data"][0]["subject"] or planning["data"][0]["start"]
+            or like this :  planning.data[0].subject or planning.data[0].start
 
     otherPlanning() -> list:
         Return a list of dict of planning of the user
@@ -72,8 +88,10 @@ class WebAurion:
         classYear : str, optional
             The year of the planning (Ex.: "1")
 
-    getSchoolReport() -> dict:
-        Return a dict of the user's report
+    getSchoolReport() -> classification.SchoolReport:
+        Return a dict of the user's report (format: {"nbReports": int, "data": [{"name": "id"}, ...]})
+            you can get value with a dict like this : report["nbReports"] or report["data"][0]["name"]
+            or like this :  report.nbReport or report.data[0].name or report.data[0].id
 
     downloadReport() -> None:
         Download the user's report
@@ -154,72 +172,86 @@ class WebAurion:
 
         return payload2
 
-    def grades(self) -> dict:
+
+    def grades(self) -> classification.GradeReport:
+        # Get the grades page
         gradeUrl = "https://web.isen-ouest.fr/webAurion/faces/LearnerNotationListPage.xhtml"
+        # Set the payload
         payload = self.payloadForGrades
         pageGrade = self.__webAurion(gradeUrl, payload)
+        # Scrap the page to get information about the grades
         soup = BeautifulSoup(pageGrade.text, "html.parser")
         result = soup.find_all("tr")[1:]
-        gradeInfo = {"gradeAverage": "", "data": []}
+        # Set the list of dict of the grades
+        grades = []
+        grade_sum = 0
+        grade_count = 0
+
+        # Check if the user does not have any grades
         for tr in result:
-            gradeInfo["data"].append({
-                "date": tr.find_all("td")[0].text,
-                "code": tr.find_all("td")[1].text,
-                "nom": tr.find_all("td")[2].text,
-                "note": tr.find_all("td")[3].text,
-                "abs": tr.find_all("td")[4].text,
-                "appreciation": tr.find_all("td")[5].text,
-                "intervenants": tr.find_all("td")[6].text
-            })
-        gradeAverage = 0
-        noGrade = 0
-        for grade in gradeInfo["data"]:
-            if grade["note"] != "" and grade["note"] != "-":
-                gradeAverage += float(grade["note"])
-            else:
-                noGrade += 1
-        gradeInfo["gradeAverage"] = round(gradeAverage / (len(gradeInfo["data"]) - noGrade), 2)
-        return gradeInfo
+            date, code, name, grade, absence, appreciation, instructors = (td.text for td in tr.find_all("td"))
+            if grade != "" and grade != "-":
+                grade_sum += float(grade)
+                grade_count += 1
 
-    def absences(self) -> dict:
-        """
-        Return a dictionary with all the absences of the user
-        """
+            # Set the dict of the grade
+            note = classification.Grade(date=date, code=code, name=name, grade=grade, absence=absence, appreciation=appreciation, instructors=instructors)
+            grades.append(note)
+            
+        # Set the average of the grades
+        grade_average = round(grade_sum / grade_count, 2) if grade_count > 0 else 0
+        grade_report = classification.GradeReport(grade_average=grade_average, grades=grades)
 
-        # Url of the absences page
-        absencesUrl = "https://web.isen-ouest.fr/webAurion/faces/MesAbsences.xhtml"
+        # Return the dict of the grades
+        return grade_report
+
+
+
+    def absences(self) -> classification.AbsenceReport:
+        # Get the absences page
+        absences_url = "https://web.isen-ouest.fr/webAurion/faces/MesAbsences.xhtml"
         # Set the payload
         payload = self.payloadForAbsences
-        pageAbsences = self.__webAurion(absencesUrl, payload)
+        absences_page = self.__webAurion(absences_url, payload)
         # Scrap the page to get information about the absences
-        soup = BeautifulSoup(pageAbsences.text, "html.parser")
-        checkAbs = soup.find_all("tr")[6:]
+        soup = BeautifulSoup(absences_page.text, "html.parser")
+        # Check if the user does not have any absences
+        check_absences = soup.find_all("tr")[6:]
         result = soup.find_all("tbody")[1].find_all("tr")
         total = soup.find_all("tbody")[2].find_all("tr")
-        
-        # If the user does not have any absence
-        if len(result) == 1 and checkAbs[0].find_all("td")[0].text == "Aucune absence.":
-            return {"nbAbsences": "0", "time": "0", "data": []}
 
-        absencesInfo = {"nbAbsences": "", "data": []}
+        # Set the list of dict of the absences
+        if len(result) == 1 and check_absences[0].find_all("td")[0].text == "Aucune absence.":
+            return classification.AbsenceReport(nbAbsences="0", time="0", data=[])
+
+        # Set the dict of the absences
+        absences_info = {"nbAbsences": "", "absences": []}
         for tr in result:
-            absencesInfo["data"].append({
+            absences_info["absences"].append({
                 "date": tr.find_all("td")[0].text,
-                "motif": tr.find_all("td")[1].text,
-                "duree": tr.find_all("td")[2].text,
-                "horaire": tr.find_all("td")[3].text,
-                "cours": tr.find_all("td")[4].text,
-                "intervenant": tr.find_all("td")[5].text,
-                "matiere": tr.find_all("td")[6].text
+                "reason": tr.find_all("td")[1].text,
+                "duration": tr.find_all("td")[2].text,
+                "schedule": tr.find_all("td")[3].text,
+                "course": tr.find_all("td")[4].text,
+                "instructor": tr.find_all("td")[5].text,
+                "subject": tr.find_all("td")[6].text
             })
-        absencesInfo["nbAbsences"] = total[0].find_all("td")[1].text
-        absencesInfo["time"] = total[1].find_all("td")[1].text
-        # Return the dictionary of absences
+        absences_info["nbAbsences"] = total[0].find_all("td")[1].text
+        absences_info["time"] = total[1].find_all("td")[1].text
+
+        # Return the dict of the absences
+        absences_data = absences_info["absences"]
+        data = [classification.Absence(date=a["date"], reason=a["reason"], duration=a["duration"], schedule=a["schedule"],
+                        course=a["course"], instructor=a["instructor"], subject=a["subject"])
+                    for a in absences_data]
+
+        # Set the dict of the absences
+        absencesInfo = classification.AbsenceReport(nbAbsences=absences_info["nbAbsences"], time=absences_info["time"], data=data)
         return absencesInfo
 
 
     def __getWorkingTime(self, req: requests.get, start_date: str = None, end_date: str = None,
-                        isOtherPlanning: bool = False, classe: str = "") -> list:
+                        isOtherPlanning: bool = False, classe: str = "") -> classification.PlanningReport:
         """ Get the working time of the user
 
         Args:
@@ -278,32 +310,34 @@ class WebAurion:
 
         for i in planning["events"]:
             info = i["title"].split(" - ")
-            planning_data = {
+            event_data = {
                 "id": i["id"],
                 "start": i["start"],
                 "end": i["end"],
-                "className": i["className"],
+                "class_name": i["className"],
                 "type": info[2],
-                "matiere": info[3] if i["className"] != "DS" else ", ".join(info[4:-3]),
+                "subject": info[3] if i["className"] != "DS" else ", ".join(info[4:-3]),
                 "description": ", ".join(info[4:-2]) if i["className"] != "DS" else ", ".join(info[4:-3]),
-                "intervenants": info[-2]
+                "instructors": info[-2]
             }
 
             if isOtherPlanning:
-                planning_data["debut"] = info[0]
-                planning_data["fin"] = info[1]
-                planning_data["salle"] = info[-1]
-                planning_data["classe"] = classe
+                event_data["start_time"] = info[0]
+                event_data["end_time"] = info[1]
+                event_data["room"] = info[-1]
+                event_data["class_info"] = classe
             else:
-                planning_data["debut"] = info[0].split(" à ")[0]
-                planning_data["fin"] = info[0].split(" à ")[1]
-                planning_data["salle"] = info[1]
-                planning_data["classe"] = info[-1]
+                event_data["start_time"] = info[0].split(" à ")[0]
+                event_data["end_time"] = info[0].split(" à ")[1]
+                event_data["room"] = info[1]
+                event_data["class_info"] = info[-1]
 
-            workingTime.append(planning_data)
+            event_obj = classification.Event(**event_data) # ** is for splited dict to args of the class 'Event'
+            workingTime.append(event_obj)
 
-        # Return the list of dict of the planning
-        return workingTime
+        # get the planning report
+        planning_report = classification.PlanningReport(events=workingTime)
+        return planning_report
 
 
     def planning(self, start_date: Optional[str] = None, end_date: Optional[str] = None) -> list:
@@ -512,12 +546,13 @@ class WebAurion:
 
         return self.__getWorkingTime(req, start_date, end_date, True, classGroup)
 
-    def getSchoolReport(self) -> dict:
-        """Get the report of the user
+    def getSchoolReport(self) -> classification.SchoolReport:
+        """
+        Get the report of the user
 
         Returns:
             dict: Dictionary containing the report information.
-                Format: {"nbReport": int, "data": {"name": "id"}}
+                Format: {"num_reports": int, "data": [{"name": "id"}, ...]}
 
         Raises:
             Exception: If the user does not have any report.
@@ -571,15 +606,19 @@ class WebAurion:
 
         report = soup.find("div", {"class": "ui-datatable-tablewrapper"}).find("select").find_all("option")
 
-        result = {"nbReport": len(report), "data": []}
+        result = {"nbReports": len(report), "data": []}
 
         for i in report:
             nameFile = i.text.split(".pdf")[0].strip() + ".pdf"
-            result["data"].append({"name": nameFile, "id": i["value"]})
+            report_data = classification.SchoolReportData(name=nameFile, id=i["value"])
+            result["data"].append(report_data)
+        
+        schoolReport = classification.SchoolReport(**result)
+        
+        self.infoReport = schoolReport
 
-        self.infoReport = result
+        return schoolReport
 
-        return result
 
 
     def downloadReport(self, path: str = None, idReport: str = None) -> None:
@@ -597,26 +636,28 @@ class WebAurion:
         if not self.payloadReport:
             self.infoReport = self.getSchoolReport()
 
-        if self.infoReport["nbReport"] == 0:
+        if self.infoReport.nbReports == 0:
             raise Exception("The user does not have any report")
 
-        if self.infoReport["nbReport"] > 1 and path is not None:
-            raise Exception("The user has more than one report. Please choose either no path or no specific path.")
+        if self.infoReport.nbReports > 1 and path is None and idReport is None:
+            for report in self.infoReport.data:
+                self.downloadReport(path=report.name, idReport=report.id)
+            return
 
         if path is None and idReport is not None:
-            # self.infoReport format : {"nbReport": int, "data":  ({"name": "name", "id":"id"}, ...)}]}
-            for i in self.infoReport["data"]:
-                if i["id"] == idReport:
-                    path = i["name"]
+            # self.infoReport format : {"nbReports": int, "data":  ({"name": "name", "id":"id"}, ...)}]}
+            for i in self.infoReport.data:
+                if i.id == idReport:
+                    path = i.name
                     break
             if path is None:
                 raise Exception("The report is not found")
 
         if idReport is None:
-            for i in self.infoReport["data"]:
+            for i in self.infoReport.data:
                 if path is None:
-                    path = i["name"]
-                self.downloadReport(path=i["name"], idReport=i["id"])
+                    path = i.name
+                self.downloadReport(path=i.name, idReport=i.id)
                 return
 
         urlChoixDonnee = "https://web.isen-ouest.fr/webAurion/faces/ChoixDonnee.xhtml"
@@ -633,6 +674,9 @@ class WebAurion:
         if req.status_code != 200:
             raise Exception(f"WebAuiron is not available at the moment: Error {req.status_code}")
 
+        if not path.endswith(".pdf"):
+            path += ".pdf"
+        
         with open(path, "wb") as f:
             f.write(req.content)
 

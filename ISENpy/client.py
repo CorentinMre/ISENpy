@@ -1,3 +1,9 @@
+# client.py
+
+"""
+This file defines the ISEN class, which is the main class of the package.
+"""
+
 import requests
 from bs4 import BeautifulSoup
 import base64
@@ -5,6 +11,7 @@ import json
 
 # IMPORT
 from . import dataClasses
+from . import classification
 
 
 class ISEN:
@@ -24,23 +31,50 @@ class ISEN:
     password : str
     Functions
     ----------
-    classMember(cycle:str, annee:str, ville:str) -> dict
+    classMember(cycle:str, annee:str, ville:str) -> classification.ClassMemberReport:
+        Parameters:
+            cycle: str "CIR", "CBIO", "CENT", "CEST", "CBIAST", "CSI"
+            annee: str "1", "2", "3"
+            ville: str "Caen", "Brest", "Nantes", "Rennes"
+        Return:
+            The class member
+                you can get value with a dict like this : classMember["nbMembers"] or classMember["data"][0]["name"]
+                or like this :  classMember.nbMembers or classMember.data[0].name
+    
     webAurion() -> dataClasses.WebAurion
-        grades() -> dict of grades of the user
-        absences() -> list of dict of absences of the user
-        planning() -> list of dict of planning of the user
-            start_date:str Optional -> The start of the planning (format : "dd-mm-yyyy")
-            end_end:str Optional -> The end of the planning  (format : "dd-mm-yyyy")
+        grades() -> classification.GradeReport:
+            Return a dict with all the grades of the user and the average of the grades
+                you can get value with a dict like this : grades["average"] or grades["data"][0]["date"]
+                or like this :  grades.average or grades.data[0].date
 
-        getOtherPlanning() -> list of dict of planning of the user
-            start_date:str Optional -> The start of the planning (format : "dd-mm-yyyy")
-            end_end:str Optional -> The end of the planning  (format : "dd-mm-yyyy")
-            classPlanning:str -> The class planning you want to get (Default: "CIR")
-            classCity:str -> The class city you want to get (Default: "Caen")
-            classYear:str -> The class year you want to get (Default: "1")
-            classGroup:str -> The class group you want to get (Default: "CBIO1 CIR1 Caen 2022-2023 Groupe 1")
+        absences() -> classification.AbsenceReport:
+            Return a list of dict of absences of the user
+                you can get value with a dict like this : absences["nbAbsences"] or absences["data"][0]["date"]
+                or like this :  absences.nbAbsences or absences.data[0].date
 
-        getSchoolReport() -> dict of school report of the user (format : {"nbReport": int, "data": {"name": "id"}})
+        planning() -> classification.PlanningReport:
+            Parameters:
+                start_date : str, optional
+                    The start of the planning (format: "dd-mm-yyyy")
+                end_date : str, optional
+                    The end of the planning (format: "dd-mm-yyyy")
+            Return a list of dict of planning of the user
+                you can get value with a dict like this : planning["data"][0]["subject"] or planning["data"][0]["start"]
+                or like this :  planning.data[0].subject or planning.data[0].start
+
+        getOtherPlanning() -> classification.PlanningReport:
+            Parameters:
+                start_date:str Optional -> The start of the planning (format : "dd-mm-yyyy")
+                end_end:str Optional -> The end of the planning  (format : "dd-mm-yyyy")
+                classPlanning:str -> The class planning you want to get (Default: "CIR")
+                classCity:str -> The class city you want to get (Default: "Caen")
+                classYear:str -> The class year you want to get (Default: "1")
+                classGroup:str -> The class group you want to get (Default: "CBIO1 CIR1 Caen 2022-2023 Groupe 1")
+            Return a list of dict of planning of the class
+                you can get value with a dict like this : planning["data"][0]["subject"] or planning["data"][0]["start"]
+                or like this :  planning.data[0].subject or planning.data[0].start
+
+        getSchoolReport() -> dict of school report of the user (format : {"nbReport": int, "data": [{"name": "id"}, ...]})
 
         downloadReport() -> Download the school report
             path (str, optional): path of the report. Defaults to the name in WebAurion.
@@ -148,12 +182,12 @@ class ISEN:
         # Get the moodle informations file: "dataClasses.py"
         return dataClasses.Moodle(self.session)
 
-    def classMember(self, cycle: str, annee: str, ville: str) -> dict:
+    def classMember(self, cycle: str, annee: str, ville: str) -> classification.ClassMemberReport:
         """
         Args:
-            cycle:str "CIR", "CBIO", "CENT", "CEST", "CBIAST", "CSI"
-            annee:str "1", "2", "3"
-            ville:str "Caen", "Brest", "Nantes", "Rennes"
+            cycle: str "CIR", "CBIO", "CENT", "CEST", "CBIAST", "CSI"
+            annee: str "1", "2", "3"
+            ville: str "Caen", "Brest", "Nantes", "Rennes"
 
         Return:
             The class member
@@ -183,21 +217,17 @@ class ISEN:
         )
         soup = BeautifulSoup(req.text, "html.parser")
         eleves = soup.find_all("td", {"id": "tdTrombi"})
-        # Create the dict of eleves
-        result = {
-            "nbEleves": len(eleves),
-            "data": [
-                {
-                    "nom": eleve.find("b").text,
-                    "mail": eleve.find("a").text,
-                    "avatarUrl": (baseUrl + eleve.find("img")["src"]).replace(
-                        " ./", "/"
-                    ),
-                }
-                for eleve in eleves
-            ],
-        }
-        # Return the dict of eleves
+        # Create the list of ClassMember objects
+        result = classification.ClassMemberReport(nbMembers=len(eleves), data=[])
+
+        for eleve in eleves:
+            name = eleve.find("b").text
+            mail = eleve.find("a").text
+            avatar_url = (baseUrl + eleve.find("img")["src"]).replace(" ./", "/")
+            class_member = classification.ClassMember(name=name, mail=mail, avatar_url=avatar_url)
+            result.data.append(class_member)
+
+        # Return the ClassMemberReport object
         return result
 
     def userInfo(self) -> dict:

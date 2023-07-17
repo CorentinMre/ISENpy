@@ -1,4 +1,3 @@
-
 import ISENpy
 
 # Create a new instance of the ISENpy class
@@ -14,25 +13,86 @@ if not client.logged_in:
 
 #Example of use
 classMember = client.classMember("CIR", "1", "Caen") #Get all the students of the class CIR1 Caen
-print(classMember)
+print(f"nb of member : {classMember.nbMembers}")
+for student in classMember.data:
+    print(f"{student.name} | {student.mail} | {student.avatar_url}")
+
+# or more simply
+
+# print(classMember)
+# print(f"nb of member : {classMember['nbMembers']}")
+# for student in classMember['data']:
+#     print(f"{student['name']} | {student['mail']} | {student['avatar_url']}")
+
+
+##########################################
 
 userInfo = client.userInfo() #Get your user info
 print(userInfo) 
 
-#Get the webAurion object
-webAurion = client.webAurion()
 
-absence = webAurion.absences() #Get your absences
-print(absence)
+##########################################
 
-grade = webAurion.grades() #Get your grades
-print(grade)
+webAurion = client.webAurion() # WebAurion initialization
 
-planning = webAurion.planning() #Get your planning of the week. Argument(Optional) : 'start_date' (format : "dd-mm-yyyy") and 'end_date' (format : "dd-mm-yyyy")
-print(planning)
+##########################################
 
-schoolReport = webAurion.getSchoolReport() #Get your school report
-print(schoolReport)
+grades = webAurion.grades()
 
-# for download the report
-#webAurion.downloadReport() #Download the school report. Argument(Optional) : 'path' (format : "path/to/file.pdf") and 'idReport' (format : "id")
+print(grades.average)
+for grade in grades.data:
+    print(f"{grade.date} : {grade.grade} ({grade.name} | {grade.instructors}), {grade.appreciation}, {grade.absence}")
+
+# Or more simply
+
+# print(grades)
+# print(grades["data"][0]["date"]) # ... (use like a dict)
+
+
+
+##########################################
+
+absences = webAurion.absences()
+
+print(absences.nbAbsences)
+print(absences.time)
+for absence in absences.data:
+    print(f" \
+            {absence.date} : {absence.reason} \
+            ({absence.duration} | {absence.schedule} | {absence.course} | \
+            {absence.instructor} | {absence.subject}) \
+        ")
+    
+# Or more simply
+
+# print(absences)
+# print(absences["data"][0]["date"]) # ... (use like a dict)
+
+##########################################
+
+planning = webAurion.planning()
+
+for event in planning.data:
+    print(f" \
+            {event.subject} ({event.start} | {event.end} , \
+            {event.start_time} | {event.end_time},  {event.instructor} | {event.room}), \
+            {event.type}, {event.class_name}, {event.description}, {event.class_info} \
+        ")
+    
+# Or more simply
+
+# print(planning)
+# print(planning["data"][0]["subject"]) # ... (use like a dict)
+
+##########################################
+
+schoolReport = webAurion.getSchoolReport()
+
+print(schoolReport.nbReports)
+for report in schoolReport.data:
+    print(f"{report.name} : {report.id}")
+
+# Or more simply
+
+# print(schoolReport)
+# print(schoolReport["data"][0]["name"]) # ... (use like a dict)

@@ -23,8 +23,9 @@ __title__ = "ISENpy"
 __author__ = "CorentinMre"
 __license__ = "MIT"
 __copyright__ = "Copyright (c) CorentinMre"
-__version__ = "0.4.5"
+__version__ = "0.5.0"
 
 
 from .dataClasses import *
 from .client import *
+from .classification import *

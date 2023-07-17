@@ -28,7 +28,7 @@ A python API wrapper for ISEN-OUEST, with webAurion information like calendar, g
 ## Usage
 
 
-- `pip3 install ISENpy`
+- `pip3 install ISENpy -U`
 
 Here is an example script:
 
@@ -48,28 +48,130 @@ if not client.logged_in:
 
 #Example of use
 classMember = client.classMember("CIR", "1", "Caen") #Get all the students of the class CIR1 Caen
-print(classMember)
+print(f"nb of member : {classMember.nbMembers}")
+for student in classMember.data:
+    print(f"{student.name} | {student.mail} | {student.avatar_url}")
+
+# or more simply
+
+# print(classMember)
+# print(f"nb of member : {classMember['nbMembers']}")
+# for student in classMember['data']:
+#     print(f"{student['name']} | {student['mail']} | {student['avatar_url']}")
+
 
 userInfo = client.userInfo() #Get your user info
 print(userInfo) 
 
-#Get the webAurion object
+```
+
+## Example for get your grades
+
+```python
+
+...
+
 webAurion = client.webAurion()
 
-absence = webAurion.absences() #Get your absences
-print(absence)
+grades = webAurion.grades()
 
-grade = webAurion.grades() #Get your grades
-print(grade)
+print(grades.average)
+for grade in grades.data:
+    print(f"{grade.date} : {grade.grade} ({grade.name} | {grade.instructors}), {grade.appreciation}, {grade.absence}")
 
-planning = webAurion.planning() #Get your planning of the week. Argument(Optional) : 'start_date' (format : "dd-mm-yyyy") and 'end_date' (format : "dd-mm-yyyy")
-print(planning)
+# Or more simply
 
-schoolReport = webAurion.getSchoolReport() #Get your school report
-print(schoolReport)
+# print(grades)
+# print(grades["data"][0]["date"]) # ... (use like a dict)
 
-# for download the report
-#webAurion.downloadReport() #Download the school report. Argument(Optional) : 'path' (format : "path/to/file.pdf") and 'idReport' (format : "id")
+```
+
+## Example for get your absences
+
+```python
+
+...
+
+webAurion = client.webAurion()
+
+absences = webAurion.absences()
+
+print(absences.nbAbsences)
+print(absences.time)
+for absence in absences.data:
+    print(f" \
+            {absence.date} : {absence.reason} \
+            ({absence.duration} | {absence.schedule} | {absence.course} | \
+            {absence.instructor} | {absence.subject}) \
+        ")
+    
+# Or more simply
+
+# print(absences)
+# print(absences["data"][0]["date"]) # ... (use like a dict)
+
+```
+
+## Example for get your planning
+
+```python
+
+...
+
+webAurion = client.webAurion()
+
+planning = webAurion.planning()
+
+for event in planning.data:
+    print(f" \
+            {event.subject} ({event.start} | {event.end} , \
+            {event.start_time} | {event.end_time},  {event.instructor} | {event.room}), \
+            {event.type}, {event.class_name}, {event.description}, {event.class_info} \
+        ")
+    
+# Or more simply
+
+# print(planning)
+# print(planning["data"][0]["subject"]) # ... (use like a dict)
+
+```
+
+## Example for get your shool report
+
+```python
+
+...
+
+webAurion = client.webAurion()
+
+schoolReport = webAurion.getSchoolReport()
+
+print(schoolReport.nbReports)
+for report in schoolReport.data:
+    print(f"{report.name} : {report.id}")
+
+# Or more simply
+
+# print(schoolReport)
+# print(schoolReport["data"][0]["name"]) # ... (use like a dict)
+
+
+```
+
+## And for download your school report
+
+```python
+
+...
+
+webAurion = client.webAurion()
+
+webAurion.downloadReport() #Download all your school report with the default name
+
+# if you want only one report
+
+# webAurion.downloadReport(idReport="report_id") 
+# Download the report with the id "report_id" with the default name (you have the id with the schoolReport object Ex. schoolReport = webAurion.getSchoolReport() ) 
 
 ```
 
@@ -99,13 +201,13 @@ planning = webAurion.planning() #Get your planning of the week. Argument(Optiona
 
 c = Calendar()
 
-for i in planning:
+for event in planning.data:
     e = Event()
-    e.name = i["matiere"] + " - " + i["type"]
-    e.description = i["description"] + " - intervenants: " + i["intervenants"] + " - classe: " + i["classe"]
-    e.location = i["salle"]
-    e.begin = datetime.fromisoformat(i["start"][:-2] + ':00')
-    e.end = datetime.fromisoformat(i["end"][:-2] + ':00')
+    e.name = event.subject + " - " + event.type
+    e.description = event.description + " - intervenants: " + event.instructor + " - classe: " + event.class_name
+    e.location = event.room
+    e.begin = datetime.fromisoformat(event.start[:-2] + ':00')
+    e.end = datetime.fromisoformat(event.end[:-2] + ':00')
     c.events.add(e)
 
 with open('week.ics', 'w') as my_file:

@@ -36,7 +36,7 @@ Here is an example script:
 import ISENpy
 
 # Create a new instance of the ISENpy class
-client = ISENpy.ISEN(
+client = ISENpy.Client(
                         username="<username>", 
                         password="<password>",
                     )
@@ -186,7 +186,7 @@ from ics import Calendar, Event
 from datetime import datetime
 
 
-client = ISENpy.ISEN(
+client = ISENpy.Client(
                         username="<username>", 
                         password="<password>",
                     )
@@ -223,7 +223,7 @@ with open('week.ics', 'w') as my_file:
 ```python
 import ISENpy
 
-client = ISENpy.ISEN(
+client = ISENpy.Client(
                         username="<username>", 
                         password="<password>",
                     )

@@ -1,7 +1,7 @@
 import ISENpy
 
 # Create a new instance of the ISENpy class
-client = ISENpy.ISEN(
+client = ISENpy.Client(
                         username="<username>", 
                         password="<password>",
                     )

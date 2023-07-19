@@ -1,7 +1,7 @@
 # client.py
 
 """
-This file defines the ISEN class, which is the main class of the package.
+This file defines the Client class, which is the main class of the package.
 """
 
 import requests
@@ -14,7 +14,7 @@ from . import dataClasses
 from . import classification
 
 
-class ISEN:
+class Client:
     """
     A ISEN-OUEST client.
     Parameters

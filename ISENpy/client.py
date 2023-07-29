@@ -199,7 +199,7 @@ class Client:
         # Set payload for the request
         payload = {
             "nombre_colonnes": 5,
-            "choix_groupe": f"{cycle.upper()}{annee} {ville.capitalize()} 2022-2023",
+            "choix_groupe": f"{cycle.upper()}{annee} {ville.capitalize()} 2023-2024",
             "statut": "etudiant",
         }
 

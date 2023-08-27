@@ -23,7 +23,7 @@ __title__ = "ISENpy"
 __author__ = "CorentinMre"
 __license__ = "MIT"
 __copyright__ = "Copyright (c) CorentinMre"
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 
 from .dataClasses import *

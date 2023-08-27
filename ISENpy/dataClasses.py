@@ -110,7 +110,7 @@ class WebAurion:
             raise Exception(f"WebAurion is not available for the moment: Error {baseReq.status_code}")
         self.payload = self.__getPayloadOfThePage(baseReq.text)
         self.language = {"form:j_idt755_input": "275805"}  # Langue Francaise
-        self.payload.update(self.language)
+        # self.payload.update(self.language)
         soup = BeautifulSoup(baseReq.text, "html.parser")
         leftMenu = soup.find("div", {"class": "ui-slidemenu-content"})
         self.id_leftMenu = {}
@@ -679,8 +679,39 @@ class WebAurion:
         
         with open(path, "wb") as f:
             f.write(req.content)
-
             
+    def getMyClass(self):
+        
+        urlPost = self.baseMainPageUrl
+
+        information = "Scolarité"
+        id_information = self.id_leftMenu[information]
+        soup = self.__soupForPlanning(self.dataOtherPlanning, id_information)
+        
+        payload = {
+            'form:sidebar': 'form:sidebar',
+            'form:sidebar_menuid': '1_7',
+            "form:j_idt780:j_idt782_dropdown": "1",
+            "form:j_idt780:j_idt782_mobiledropdown": "1"
+        }
+
+        req = self.session.post(urlPost, data=payload)
+        
+        payload2 = self.__getPayloadOfThePage(req.text)
+        
+        payload2.update(payload)
+        payload2.update(self.language)
+
+        req = self.session.post(urlPost, data=payload2)
+        
+        soup = BeautifulSoup(req.text, "html.parser")
+        
+        row = soup.find_all("tr", {"class": "CursorInitial"})[0]
+        
+        classe = row.find_all("td")[0].text
+            
+        return classe
+        
 
 class Moodle:
     """Class to get the resources of the user's courses. (on Moodle)

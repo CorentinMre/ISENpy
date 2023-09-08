@@ -181,6 +181,11 @@ class WebAurion:
         pageGrade = self.__webAurion(gradeUrl, payload)
         # Scrap the page to get information about the grades
         soup = BeautifulSoup(pageGrade.text, "html.parser")
+        
+        title = soup.find("title").text.strip()
+        if title != "Mes notes":
+            return {"success": False, "error": "You are not connected to WebAurion"}
+
         result = soup.find_all("tr")[1:]
         # Set the list of dict of the grades
         grades = []
@@ -215,6 +220,12 @@ class WebAurion:
         absences_page = self.__webAurion(absences_url, payload)
         # Scrap the page to get information about the absences
         soup = BeautifulSoup(absences_page.text, "html.parser")
+        
+        
+        title = soup.find("title").text.strip()
+        if title != "Mes absences":
+            return {"success": False, "error": "You are not connected to WebAurion"}
+        
         # Check if the user does not have any absences
         check_absences = soup.find_all("tr")[6:]
         result = soup.find_all("tbody")[1].find_all("tr")

@@ -102,6 +102,7 @@ class Client:
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0"
         }
         self.logged_in = self.__login()
+        self.annee = "2023-2024"
 
     def __checkClassExist(self, cycle: str, annee: str, ville: str) -> bool:
         """
@@ -195,20 +196,32 @@ class Client:
 
         # Base url of trombinoscope
         baseUrl = "https://web.isen-ouest.fr/trombino"
-
+        
+        
+        try:
+            anneeTemp = int(annee)
+            if anneeTemp >= 3:
+                if ville.capitalize() == "Brest":
+                    choix_groupe = f"A{annee}{ville.capitalize()[0]} Groupe {cycle.upper()} {self.annee}"
+                elif ville.capitalize() == "Rennes" and anneeTemp == "2":
+                    choix_groupe = f"{cycle.upper()}{annee} {ville.capitalize()} {self.annee}"
+                else:
+                    choix_groupe = f"A{annee}{ville.capitalize()[0]} {cycle.upper()}{annee} {self.annee}"
+            else:
+                choix_groupe = f"{cycle.upper()}{annee} {ville.capitalize()} {self.annee}"
+        except:
+            raise Exception("L'année doit être un nombre entier")
+        
+    
         # Set payload for the request
         payload = {
             "nombre_colonnes": 5,
-            "choix_groupe": f"{cycle.upper()}{annee} {ville.capitalize()} 2023-2024",
+            "choix_groupe": choix_groupe,
             "statut": "etudiant",
         }
 
         # Check if the class exists
-        self.__checkClassExist(
-            payload["choix_groupe"].split(" ")[0][:-1],
-            payload["choix_groupe"].split(" ")[0][-1:],
-            payload["choix_groupe"].split(" ")[1],
-        )
+        self.__checkClassExist(cycle.upper(), annee, ville.capitalize())
 
         # Get the class member
         self.session.get(baseUrl)

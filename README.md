@@ -204,7 +204,7 @@ c = Calendar()
 for event in planning.data:
     e = Event()
     e.name = event.subject + " - " + event.type
-    e.description = event.description + " - intervenants: " + event.instructors + " - classe: " + event.class_name
+    e.description = event.description + " - intervenants: " + event.instructors + " - classe: " + event.class_info
     e.location = event.room
     e.begin = datetime.fromisoformat(event.start[:-2] + ':00')
     e.end = datetime.fromisoformat(event.end[:-2] + ':00')

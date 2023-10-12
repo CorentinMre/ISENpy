@@ -542,12 +542,12 @@ class WebAurion:
             raise Exception("The classGroup is not in the list of the planning", list(self.classGroup.keys()))
 
         lastPayload = {
-            "form:j_idt181_reflowDD": "0_0",
-            "form:j_idt181:j_idt186:filter": "",
-            "form:j_idt181_checkbox": "on",
-            "form:j_idt181_selection": self.classGroup[classGroup],
-            "form:j_idt238": "",
-            "form:j_idt248_input": "275805"    
+            "form:j_idt193_reflowDD": "0_0",
+            "form:j_idt193:j_idt198:filter": "",
+            "form:j_idt193_checkbox": "on",
+            "form:j_idt193_selection": self.classGroup[classGroup],
+            "form:j_idt261": "",
+            "form:j_idt271_input": "275805"     
         }
 
         payloadForChoicePlanning = {classYear: self.__getPayloadOfThePage(self.classPlanning[classPlanning]["city"][classCity]["year"][classYear]["extraInfo"].text)}

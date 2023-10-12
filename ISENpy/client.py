@@ -135,7 +135,7 @@ class Client:
 
         # Get the login page
         req = self.session.get(
-            "https://auth.isen-ouest.fr/cas/login?service=https://web.isen-ouest.fr/uPortal/Login"
+            "https://auth.isen-ouest.fr/cas/login"
         )
 
         # Get payload for login
@@ -249,10 +249,17 @@ class Client:
         """
 
         # Get the user info
-        req = self.session.get("https://web.isen-ouest.fr/uPortal/api/v5-1/userinfo")
+        req = self.session.get("https://auth.isen-ouest.fr/cas/login")
         # Scrap the user info
-        info = json.loads(
-            base64.urlsafe_b64decode(req.text.split(".")[1].encode()).decode()
-        )
+        # info = json.loads(
+        #     base64.urlsafe_b64decode(req.text.split(".")[1].encode()).decode()
+        # )
+        soup = BeautifulSoup(req.text, "html.parser")
+        tbody = soup.find("tbody")
+        tr = tbody.find_all("tr")
+        info = {}
+        for i in tr:
+            td = i.find_all("td")
+            info[td[0].text.lower()] = td[1].text[1:-1]
         # Return the user info
         return info

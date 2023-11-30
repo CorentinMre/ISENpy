@@ -229,11 +229,12 @@ class WebAurion:
         # Check if the user does not have any absences
         check_absences = soup.find_all("tr")[6:]
         result = soup.find_all("tbody")[1].find_all("tr")
-        total = soup.find_all("tbody")[2].find_all("tr")
-
+        
         # Set the list of dict of the absences
         if len(result) == 1 and check_absences[0].find_all("td")[0].text == "Aucune absence.":
             return classification.AbsenceReport(nbAbsences="0", time="0", data=[])
+        
+        total = soup.find_all("tbody")[2].find_all("tr")
 
         # Set the dict of the absences
         absences_info = {"nbAbsences": "", "absences": []}

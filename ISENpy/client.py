@@ -174,7 +174,7 @@ class Client:
         Return the webAurion class, For check grades, absences, planning, etc...
         """
         # Get the webAurion informations file: "dataClasses.py"
-        return dataClasses.WebAurion(self.session)
+        return dataClasses.WebAurion(self.session, self.username, self.password)
 
     def moodle(self):
         """

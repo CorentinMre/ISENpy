@@ -101,17 +101,27 @@ class WebAurion:
             The id of the report (Default: all the user's reports)
     """
 
-    def __init__(self, session: requests.Session):
+    def __init__(self, session: requests.Session, username: str, password: str):
         self.session = session
         self.baseWebAurionUrl = "https://web.isen-ouest.fr/webAurion/?portail=false"
         self.baseMainPageUrl = "https://web.isen-ouest.fr/webAurion/faces/MainMenuPage.xhtml"
         baseReq = self.session.get(self.baseWebAurionUrl)
         if baseReq.status_code != 200:
             raise Exception(f"WebAurion is not available for the moment: Error {baseReq.status_code}")
-        self.payload = self.__getPayloadOfThePage(baseReq.text)
+        
+        
+        soup = BeautifulSoup(baseReq.text, "html.parser")
+        urlToPost = self.__getAcionFromForm(soup)
+        
+        req = self.session.post(urlToPost, data={"username": username, "password": password, "credentialId": ""})
+        
+        if req.status_code != 200:
+            raise Exception(f"WebAurion is not available for the moment: Error {req.status_code}")
+        
+        self.payload = self.__getPayloadOfThePage(req.text)
         self.language = {"form:j_idt755_input": "275805"}  # Langue Francaise
         # self.payload.update(self.language)
-        soup = BeautifulSoup(baseReq.text, "html.parser")
+        soup = BeautifulSoup(req.text, "html.parser")
         leftMenu = soup.find("div", {"class": "ui-slidemenu-content"})
         self.id_leftMenu = {}
         self.classPlanning = {}
@@ -151,6 +161,20 @@ class WebAurion:
         self.dataOtherPlanning.update(self.payload)
         self.payloadReport = {}
         self.infoReport = {}
+        
+        
+    def __getAcionFromForm(self, soup: BeautifulSoup) -> str:
+        """Get the action of the form.
+
+        Args:
+            soup (BeautifulSoup): The 'soup' page.
+            id (str): ID of the next page.
+
+        Returns:
+            str: The action of the form.
+        """
+        return soup.find("form")["action"]
+    
 
     def __webAurion(self, url: str, data: dict) -> requests.Response:
         mainPageUrl = self.baseMainPageUrl

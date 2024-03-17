@@ -1,45 +1,8 @@
 # classification.py
 
 """
-This file defines classes to represent class member, grades, absences, and planning events, along with their respective reports.
+This file defines classes to represent grades, absences, and planning events, along with their respective reports.
 """
-
-# Class Member
-class ClassMember:
-    def __init__(self, name, mail, avatar_url):
-        self.name = name
-        self.mail = mail
-        self.avatar_url = avatar_url
-    
-    def __repr__(self):
-        return f"ClassMember(name='{self.name}', mail='{self.mail}', avatar_url='{self.avatar_url}')"
-
-    def __getitem__(self, key):
-        if key == 'name':
-            return self.name
-        elif key == 'mail':
-            return self.mail
-        elif key == 'avatar_url':
-            return self.avatar_url
-        else:
-            raise KeyError(f"Invalid key: {key}, valid keys are 'name', 'mail', and 'avatar_url'")
-
-class ClassMemberReport:
-    def __init__(self, nbMembers, data):
-        self.nbMembers = nbMembers
-        self.data = data
-    
-    def __repr__(self):
-        return f"ClassMemberReport(nbMembers={self.nbMembers}, data={self.data})"
-    
-    def __getitem__(self, key):
-        if key == 'nbMembers':
-            return self.nbMembers
-        elif key == 'data':
-            return self.data
-        else:
-            raise KeyError(f"Invalid key: {key}, valid keys are 'nbMembers' and 'data'")
-
 
 # Grade
 class Grade:

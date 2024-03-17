@@ -11,19 +11,6 @@ if not client.logged_in:
     print("Identifiant ou mot de passe incorect !!")
     exit()
 
-#Example of use
-classMember = client.classMember("CIR", "1", "Caen") #Get all the students of the class CIR1 Caen
-print(f"nb of member : {classMember.nbMembers}")
-for student in classMember.data:
-    print(f"{student.name} | {student.mail} | {student.avatar_url}")
-
-# or more simply
-
-# print(classMember)
-# print(f"nb of member : {classMember['nbMembers']}")
-# for student in classMember['data']:
-#     print(f"{student['name']} | {student['mail']} | {student['avatar_url']}")
-
 
 ##########################################
 

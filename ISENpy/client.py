@@ -30,17 +30,7 @@ class Client:
     username : str
     password : str
     Functions
-    ----------
-    classMember(cycle:str, annee:str, ville:str) -> classification.ClassMemberReport:
-        Parameters:
-            cycle: str "CIR", "CBIO", "CENT", "CEST", "CBIAST", "CSI"
-            annee: str "1", "2", "3"
-            ville: str "Caen", "Brest", "Nantes", "Rennes"
-        Return:
-            The class member
-                you can get value with a dict like this : classMember["nbMembers"] or classMember["data"][0]["name"]
-                or like this :  classMember.nbMembers or classMember.data[0].name
-    
+    ----------    
     webAurion() -> dataClasses.WebAurion
         grades() -> classification.GradeReport:
             Return a dict with all the grades of the user and the average of the grades
@@ -183,65 +173,6 @@ class Client:
         # Get the moodle informations file: "dataClasses.py"
         return dataClasses.Moodle(self.session)
 
-    def classMember(self, cycle: str, annee: str, ville: str) -> classification.ClassMemberReport:
-        """
-        Args:
-            cycle: str "CIR", "CBIO", "CENT", "CEST", "CBIAST", "CSI"
-            annee: str "1", "2", "3"
-            ville: str "Caen", "Brest", "Nantes", "Rennes"
-
-        Return:
-            The class member
-        """
-
-        # Base url of trombinoscope
-        baseUrl = "https://web.isen-ouest.fr/trombino"
-        
-        
-        try:
-            anneeTemp = int(annee)
-            if anneeTemp >= 3:
-                if ville.capitalize() == "Brest":
-                    choix_groupe = f"A{annee}{ville.capitalize()[0]} Groupe {cycle.upper()} {self.annee}"
-                elif ville.capitalize() == "Rennes" and anneeTemp == "2":
-                    choix_groupe = f"{cycle.upper()}{annee} {ville.capitalize()} {self.annee}"
-                else:
-                    choix_groupe = f"A{annee}{ville.capitalize()[0]} {cycle.upper()}{annee} {self.annee}"
-            else:
-                choix_groupe = f"{cycle.upper()}{annee} {ville.capitalize()} {self.annee}"
-        except:
-            raise Exception("L'année doit être un nombre entier")
-        
-    
-        # Set payload for the request
-        payload = {
-            "nombre_colonnes": 5,
-            "choix_groupe": choix_groupe,
-            "statut": "etudiant",
-        }
-
-        # Check if the class exists
-        self.__checkClassExist(cycle.upper(), annee, ville.capitalize())
-
-        # Get the class member
-        self.session.get(baseUrl)
-        req = self.session.post(
-            f"{baseUrl}/fonctions/ajax/lister_etudiants.php", data=payload
-        )
-        soup = BeautifulSoup(req.text, "html.parser")
-        eleves = soup.find_all("td", {"id": "tdTrombi"})
-        # Create the list of ClassMember objects
-        result = classification.ClassMemberReport(nbMembers=len(eleves), data=[])
-
-        for eleve in eleves:
-            name = eleve.find("b").text
-            mail = eleve.find("a").text
-            avatar_url = (baseUrl + eleve.find("img")["src"]).replace(" ./", "/")
-            class_member = classification.ClassMember(name=name, mail=mail, avatar_url=avatar_url)
-            result.data.append(class_member)
-
-        # Return the ClassMemberReport object
-        return result
 
     def userInfo(self) -> dict:
         """

@@ -2,29 +2,25 @@ import ISENpy
 
 # Create a new instance of the ISENpy class
 client = ISENpy.Client(
-                        username="<username>", 
-                        password="<password>",
+                        username="", 
+                        password="",
                     )
 
 #Check if the user is logged in
 if not client.logged_in:
     print("Identifiant ou mot de passe incorect !!")
     exit()
+    
+
+
+className = client.getMyClass()
+print(className)
 
 
 ##########################################
 
-userInfo = client.userInfo() #Get your user info
-print(userInfo) 
 
-
-##########################################
-
-webAurion = client.webAurion() # WebAurion initialization
-
-##########################################
-
-grades = webAurion.grades()
+grades = client.grades()
 
 print(grades.average)
 for grade in grades.data:
@@ -39,7 +35,7 @@ for grade in grades.data:
 
 ##########################################
 
-absences = webAurion.absences()
+absences = client.absences()
 
 print(absences.nbAbsences)
 print(absences.time)
@@ -57,7 +53,7 @@ for absence in absences.data:
 
 ##########################################
 
-planning = webAurion.planning()
+planning = client.planning()
 
 for event in planning.data:
     print(f" \
@@ -73,7 +69,7 @@ for event in planning.data:
 
 ##########################################
 
-schoolReport = webAurion.getSchoolReport()
+schoolReport = client.getSchoolReport()
 
 print(schoolReport.nbReports)
 for report in schoolReport.data:

@@ -3,9 +3,7 @@
 
 <br/>
 
-
 <h2 style="font-family: sans-serif; font-weight: normal;" align="center"><strong>An API for ISEN-OUEST</strong></h2>
-
 
 <br/>
 
@@ -16,8 +14,8 @@
 [![license](https://img.shields.io/pypi/l/ISENpy.svg)](https://pypi.org/project/ISENpy/)
 
 ## Description
-A python API wrapper for ISEN-OUEST, with webAurion information like calendar, grades, absences...
 
+A python API wrapper for ISEN-OUEST, with webAurion information like calendar, grades, absences...
 
 ## Dependencies
 
@@ -26,7 +24,6 @@ A python API wrapper for ISEN-OUEST, with webAurion information like calendar, g
 - lxml
 
 ## Usage
-
 
 - `pip3 install ISENpy -U`
 
@@ -47,8 +44,8 @@ if not client.logged_in:
     exit()
 
 
-userInfo = client.userInfo() #Get your user info
-print(userInfo) 
+my_class_name = client.getMyClass()
+print(my_class_name) 
 
 ```
 
@@ -58,9 +55,8 @@ print(userInfo)
 
 ...
 
-webAurion = client.webAurion()
 
-grades = webAurion.grades()
+grades = client.grades()
 
 print(grades.average)
 for grade in grades.data:
@@ -79,9 +75,8 @@ for grade in grades.data:
 
 ...
 
-webAurion = client.webAurion()
 
-absences = webAurion.absences()
+absences = client.absences()
 
 print(absences.nbAbsences)
 print(absences.time)
@@ -91,7 +86,7 @@ for absence in absences.data:
             ({absence.duration} | {absence.schedule} | {absence.course} | \
             {absence.instructor} | {absence.subject}) \
         ")
-    
+  
 # Or more simply
 
 # print(absences)
@@ -105,9 +100,7 @@ for absence in absences.data:
 
 ...
 
-webAurion = client.webAurion()
-
-planning = webAurion.planning()
+planning = client.planning()
 
 for event in planning.data:
     print(f" \
@@ -115,7 +108,7 @@ for event in planning.data:
             {event.start_time} | {event.end_time},  {event.instructor} | {event.room}), \
             {event.type}, {event.class_name}, {event.description}, {event.class_info} \
         ")
-    
+  
 # Or more simply
 
 # print(planning)
@@ -129,9 +122,7 @@ for event in planning.data:
 
 ...
 
-webAurion = client.webAurion()
-
-schoolReport = webAurion.getSchoolReport()
+schoolReport = client.getSchoolReport()
 
 print(schoolReport.nbReports)
 for report in schoolReport.data:
@@ -151,9 +142,8 @@ for report in schoolReport.data:
 
 ...
 
-webAurion = client.webAurion()
 
-webAurion.downloadReport() #Download all your school report with the default name
+client.downloadReport() #Download all your school report with the default name
 
 # if you want only one report
 
@@ -182,9 +172,7 @@ if not client.logged_in:
     print("Identifiant ou mot de passe incorect !!")
     exit()
 
-webAurion = client.webAurion() #Get the webAurion object
-
-planning = webAurion.planning() #Get your planning of the week. Argument(Optional) : 'start_date' (format : "dd-mm-yyyy") and 'end_date' (format : "dd-mm-yyyy")
+planning = client.planning() #Get your planning of the week. Argument(Optional) : 'start_date' (format : "dd-mm-yyyy") and 'end_date' (format : "dd-mm-yyyy")
 
 c = Calendar()
 
@@ -205,35 +193,10 @@ with open('week.ics', 'w') as my_file:
 - ***And now double click on the new 'week.ics' file***
 
 
-## Example for get Moodle Resources
-
-```python
-import ISENpy
-
-client = ISENpy.Client(
-                        username="<username>", 
-                        password="<password>",
-                    )
-if not client.logged_in:
-    print("Identifiant ou mot de passe incorect !!")
-    exit()
-
-moodle = client.moodle() #Get the moodle object
-
-links = moodle.getCoursesLink() #Get all links of your courses
-
-for link in links:
-    resources = moodle.getCourseResources(links[link]) #Get all the assignments
-    print(link + " :\n")
-    print(resources)
-    print("------------------------------------------------------------------")
-
-```
-
 
 ## LICENSE
 
-Copyright (c) 2022-2023 CorentinMre
+Copyright (c) 2022-2024 CorentinMre
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -4,7 +4,7 @@ An API wrapper for ISEN-OUEST.
 
 This whole package is licensed under the MIT license:
 
-Copyright (c) 2020-2021 CorentinMre
+Copyright (c) 2022-2024 CorentinMre
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -23,9 +23,7 @@ __title__ = "ISENpy"
 __author__ = "CorentinMre"
 __license__ = "MIT"
 __copyright__ = "Copyright (c) CorentinMre"
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 
-from .dataClasses import *
 from .client import *
-from .classification import *
